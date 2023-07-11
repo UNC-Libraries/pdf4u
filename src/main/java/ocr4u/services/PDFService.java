@@ -14,7 +14,8 @@ public class PDFService {
     /**
      * Run OCRmyPDF and add OCR to a PDF
      * This will fail if the PDF has existing OCR
-     * @param fileName a PDF, outputPath
+     * @param fileName a PDF
+     * @param outputPath destination for output PDF
      * @return outputFile path to the output PDF with OCR
      */
     public String addOcrtoPdf(Path fileName, Path outputPath) throws Exception {
@@ -29,6 +30,9 @@ public class PDFService {
             Process process = builder.start();
             String cmdOutput = new String(process.getInputStream().readAllBytes());
             log.debug(cmdOutput);
+            if (process.exitValue() != 0) {
+                throw new Exception(fileName + " failed to generate PDF with OCR.");
+            }
         } catch (Exception e) {
             throw new Exception(fileName + " failed to generate PDF with OCR.", e);
         }
@@ -38,7 +42,8 @@ public class PDFService {
 
     /**
      * Run OCRmyPDF and redo OCR on a PDF OCRed with other OCR software or a previous version of OCRmyPDF
-     * @param fileName a PDF, outputPath
+     * @param fileName a PDF
+     * @param outputPath destination for output PDF
      * @return outputFile path to the output PDF with OCR
      */
     public String redoExistingOCR(Path fileName, Path outputPath) throws Exception {
@@ -54,6 +59,9 @@ public class PDFService {
             Process process = builder.start();
             String cmdOutput = new String(process.getInputStream().readAllBytes());
             log.debug(cmdOutput);
+            if (process.exitValue() != 0) {
+                throw new Exception(fileName + " failed to generate PDF with OCR.");
+            }
         } catch (Exception e) {
             throw new Exception(fileName + " failed to generate PDF with OCR.", e);
         }

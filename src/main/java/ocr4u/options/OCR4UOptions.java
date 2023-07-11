@@ -2,6 +2,7 @@ package ocr4u.options;
 
 import picocli.CommandLine.Option;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -15,6 +16,7 @@ public class OCR4UOptions {
     private Path fileName;
 
     @Option(names = {"-o", "--output-path"},
+            required = true,
             description = "Destination for PDF with OCR. You must set the output path manually, no default.")
     private Path outputPath;
 
@@ -23,7 +25,9 @@ public class OCR4UOptions {
     }
 
     public void setFileName(Path fileName) {
-        this.fileName = fileName;
+        if (Files.exists(fileName)) {
+            this.fileName = fileName;
+        }
     }
 
     public Path getOutputPath() {
@@ -31,6 +35,8 @@ public class OCR4UOptions {
     }
 
     public void setOutputPath(Path outputPath) {
-        this.outputPath = outputPath;
+        if (Files.isWritable(outputPath)) {
+            this.outputPath = outputPath;
+        }
     }
 }
