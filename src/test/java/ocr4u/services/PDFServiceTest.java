@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PDFServiceTest {
@@ -41,7 +40,7 @@ public class PDFServiceTest {
 
         assertEquals(Paths.get(tmpFolder + "/cat.pdf"), testOutput);
         assertTrue(Files.exists(Paths.get(tmpFolder + "/cat.pdf")));
-        assertFalse(testOutputText.isEmpty());
+        assertTrue(testOutputText.contains("kittens"));
     }
 
     @Test
@@ -54,7 +53,7 @@ public class PDFServiceTest {
 
         assertEquals(Paths.get(tmpFolder + "/Cat-Wikipedia.pdf"), testOutput);
         assertTrue(Files.exists(Paths.get(tmpFolder + "/Cat-Wikipedia.pdf")));
-        assertFalse(testOutputText.isEmpty());
+        assertTrue(testOutputText.contains("kittens"));
     }
 
 }
