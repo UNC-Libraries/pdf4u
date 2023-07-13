@@ -8,20 +8,24 @@ import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Service for adding OCR to a PDF
+ * @author krwong
+ */
 public class PDFService {
     private static final Logger log = getLogger(PDFService.class);
 
     /**
      * Run OCRmyPDF and add OCR to a PDF
      * This will fail if the PDF has existing OCR
-     * @param fileName a PDF
+     * @param inputPath a PDF
      * @param outputPath destination for output PDF
      * @return outputFile path to the output PDF with OCR
      */
-    public String addOcrtoPdf(Path fileName, Path outputPath) throws Exception {
+    public Path addOcrToPdf(Path inputPath, Path outputPath) throws Exception {
         String ocrMyPdf = "ocrmypdf";
-        String inputFile = String.valueOf(fileName);
-        String outputFile = String.valueOf(outputPath.resolve(fileName.getFileName()));
+        String inputFile = String.valueOf(inputPath);
+        String outputFile = String.valueOf(outputPath.resolve(inputPath.getFileName()));
         List<String> command = Arrays.asList(ocrMyPdf, inputFile, outputFile);
 
         try {
@@ -30,27 +34,27 @@ public class PDFService {
             Process process = builder.start();
             String cmdOutput = new String(process.getInputStream().readAllBytes());
             log.debug(cmdOutput);
-            if (process.exitValue() != 0) {
-                throw new Exception(fileName + " failed to generate PDF with OCR.");
+            if (process.waitFor() != 0) {
+                throw new Exception("Command exited with status code " + process.waitFor());
             }
         } catch (Exception e) {
-            throw new Exception(fileName + " failed to generate PDF with OCR.", e);
+            throw new Exception(inputPath + " failed to generate PDF with OCR.", e);
         }
 
-        return outputFile;
+        return Path.of(outputFile);
     }
 
     /**
      * Run OCRmyPDF and redo OCR on a PDF OCRed with other OCR software or a previous version of OCRmyPDF
-     * @param fileName a PDF
+     * @param inputPath a PDF
      * @param outputPath destination for output PDF
      * @return outputFile path to the output PDF with OCR
      */
-    public String redoExistingOCR(Path fileName, Path outputPath) throws Exception {
+    public Path redoExistingOCR(Path inputPath, Path outputPath) throws Exception {
         String ocrMyPdf = "ocrmypdf";
         String redoOcr = "--redo-ocr";
-        String inputFile = String.valueOf(fileName);
-        String outputFile = String.valueOf(outputPath.resolve(fileName.getFileName()));
+        String inputFile = String.valueOf(inputPath);
+        String outputFile = String.valueOf(outputPath.resolve(inputPath.getFileName()));
         List<String> command = Arrays.asList(ocrMyPdf, redoOcr, inputFile, outputFile);
 
         try {
@@ -59,13 +63,13 @@ public class PDFService {
             Process process = builder.start();
             String cmdOutput = new String(process.getInputStream().readAllBytes());
             log.debug(cmdOutput);
-            if (process.exitValue() != 0) {
-                throw new Exception(fileName + " failed to generate PDF with OCR.");
+            if (process.waitFor() != 0) {
+                throw new Exception("Command exited with status code " + process.waitFor());
             }
         } catch (Exception e) {
-            throw new Exception(fileName + " failed to generate PDF with OCR.", e);
+            throw new Exception(inputPath + " failed to generate PDF with OCR.", e);
         }
 
-        return outputFile;
+        return Path.of(outputFile);
     }
 }

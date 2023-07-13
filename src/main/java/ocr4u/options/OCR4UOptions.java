@@ -10,23 +10,23 @@ import java.nio.file.Path;
  * @author krwong
  */
 public class OCR4UOptions {
-    @Option(names = {"-f", "--filename"},
+    @Option(names = {"-i", "--input-path"},
             required = true,
             description = "Required. Filename of PDF.")
-    private Path fileName;
+    private Path inputPath;
 
     @Option(names = {"-o", "--output-path"},
             required = true,
-            description = "Destination for PDF with OCR. You must set the output path manually, no default.")
+            description = "Required. Path to a directory. Destination for PDF with OCR.")
     private Path outputPath;
 
-    public Path getFileName() {
-        return fileName;
+    public Path getInputPath() {
+        return inputPath;
     }
 
-    public void setFileName(Path fileName) {
-        if (Files.exists(fileName)) {
-            this.fileName = fileName;
+    public void setInputPath(Path inputPath) {
+        if (Files.exists(inputPath)) {
+            this.inputPath = inputPath;
         }
     }
 
