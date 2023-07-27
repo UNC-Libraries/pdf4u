@@ -1,5 +1,6 @@
 package ocr4u;
 
+import ocr4u.services.ImageService;
 import ocr4u.services.PDFService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ public class OCR4UCommandIT {
     public Path tmpFolder;
 
     private PDFService pdfService;
+    private ImageService imageService;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -34,6 +36,7 @@ public class OCR4UCommandIT {
         System.setOut(new PrintStream(outputStreamCaptor));
 
         pdfService = new PDFService();
+        imageService = new ImageService();
     }
 
     @Test
@@ -41,7 +44,7 @@ public class OCR4UCommandIT {
         String testFile = "src/test/resources/cat.pdf";
         String[] args = new String[] {
                 "ocr4u",
-                "add_ocr", "-f", testFile, "-o", tmpFolder.toString()
+                "pdf_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);
@@ -52,7 +55,29 @@ public class OCR4UCommandIT {
         String testFile = "src/test/resources/Cat-Wikipedia.pdf";
         String[] args = new String[] {
                 "ocr4u",
-                "redo_ocr", "-f", testFile, "-o", tmpFolder.toString()
+                "pdf_redo_ocr", "-i", testFile, "-o", tmpFolder.toString()
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void addOCRtoImageTest() throws Exception {
+        String testFile = "src/test/resources/dog-wikipedia.png";
+        String[] args = new String[] {
+                "ocr4u",
+                "image_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void addOCRtoMultipleImagesTest() throws Exception {
+        String testFile = "src/test/resources/listofimages.txt";
+        String[] args = new String[] {
+                "ocr4u",
+                "image_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);
