@@ -1,6 +1,5 @@
 package ocr4u.services;
 
-import ocr4u.services.PDFService;
 import org.apache.tika.Tika;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,8 +36,8 @@ public class PDFServiceTest {
         Path testOutput = pdfService.addOcrToPdf(Path.of(testFile), tmpFolder);
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(Paths.get(tmpFolder + "/cat.pdf"), testOutput);
-        assertTrue(Files.exists(Paths.get(tmpFolder + "/cat.pdf")));
+        assertEquals(Path.of(String.valueOf(tmpFolder), "cat.pdf"), testOutput);
+        assertTrue(Files.exists(Path.of(String.valueOf(tmpFolder), "cat.pdf")));
         assertTrue(testOutputText.contains("kittens"));
     }
 
@@ -51,8 +49,8 @@ public class PDFServiceTest {
         Path testOutput = pdfService.redoExistingOCR(Path.of(testFile), tmpFolder);
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(Paths.get(tmpFolder + "/Cat-Wikipedia.pdf"), testOutput);
-        assertTrue(Files.exists(Paths.get(tmpFolder + "/Cat-Wikipedia.pdf")));
+        assertEquals(Path.of(String.valueOf(tmpFolder), "Cat-Wikipedia.pdf"), testOutput);
+        assertTrue(Files.exists(Path.of(String.valueOf(tmpFolder), "Cat-Wikipedia.pdf")));
         assertTrue(testOutputText.contains("kittens"));
     }
 

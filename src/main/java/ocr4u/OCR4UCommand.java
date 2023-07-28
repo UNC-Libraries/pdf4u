@@ -26,7 +26,7 @@ public class OCR4UCommand {
 
     @Command(name = "pdf_add_ocr",
             description = "Perform OCR on a PDF")
-    public int PdfAddOCR(@Mixin OCR4UOptions options) throws Exception {
+    public int pdfAddOCR(@Mixin OCR4UOptions options) throws Exception {
         try {
             pdfService.addOcrToPdf(options.getInputPath(), options.getOutputPath());
             return 0;
@@ -39,7 +39,7 @@ public class OCR4UCommand {
 
     @Command(name = "pdf_redo_ocr",
             description = "Perform OCR on a PDF")
-    public int PdfRedoOCR(@Mixin OCR4UOptions options) throws Exception {
+    public int pdfRedoOCR(@Mixin OCR4UOptions options) throws Exception {
         try {
             pdfService.redoExistingOCR(options.getInputPath(), options.getOutputPath());
             return 0;
