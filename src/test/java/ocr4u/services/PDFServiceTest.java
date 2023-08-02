@@ -36,8 +36,8 @@ public class PDFServiceTest {
         Path testOutput = pdfService.addOcrToPdf(Path.of(testFile), tmpFolder);
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(Path.of(String.valueOf(tmpFolder), "cat.pdf"), testOutput);
-        assertTrue(Files.exists(Path.of(String.valueOf(tmpFolder), "cat.pdf")));
+        assertEquals(tmpFolder.resolve("cat.pdf"), testOutput);
+        assertTrue(Files.exists(tmpFolder.resolve("cat.pdf")));
         assertTrue(testOutputText.contains("kittens"));
     }
 
@@ -49,8 +49,8 @@ public class PDFServiceTest {
         Path testOutput = pdfService.redoExistingOCR(Path.of(testFile), tmpFolder);
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(Path.of(String.valueOf(tmpFolder), "Cat-Wikipedia.pdf"), testOutput);
-        assertTrue(Files.exists(Path.of(String.valueOf(tmpFolder), "Cat-Wikipedia.pdf")));
+        assertEquals(tmpFolder.resolve("Cat-Wikipedia.pdf"), testOutput);
+        assertTrue(Files.exists(tmpFolder.resolve("Cat-Wikipedia.pdf")));
         assertTrue(testOutputText.contains("kittens"));
     }
 

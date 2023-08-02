@@ -33,11 +33,11 @@ public class ImageServiceTest {
         String testFile = "src/test/resources/dog-wikipedia.png";
 
         Path testOutput = imageService.addOCRToImage(Path.of(testFile),
-                Path.of(String.valueOf(tmpFolder), "dog"));
+                tmpFolder.resolve("dog"));
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(Path.of(String.valueOf(tmpFolder), "dog.pdf"), testOutput);
-        assertTrue(Files.exists(Path.of(String.valueOf(tmpFolder), "dog.pdf")));
+        assertEquals(tmpFolder.resolve("dog.pdf"), testOutput);
+        assertTrue(Files.exists(tmpFolder.resolve("dog.pdf")));
         assertTrue(testOutputText.contains("man's best friend"));
     }
 
@@ -46,11 +46,11 @@ public class ImageServiceTest {
         String testFile = "src/test/resources/listofimages.txt";
 
         Path testOutput = imageService.addOCRToImage(Path.of(testFile),
-                Path.of(String.valueOf(tmpFolder), "multipleimages"));
+                tmpFolder.resolve("multipleimages"));
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(Path.of(String.valueOf(tmpFolder), "multipleimages.pdf"), testOutput);
-        assertTrue(Files.exists(Path.of(String.valueOf(tmpFolder), "multipleimages.pdf")));
+        assertEquals(tmpFolder.resolve("multipleimages.pdf"), testOutput);
+        assertTrue(Files.exists(tmpFolder.resolve("multipleimages.pdf")));
         assertTrue(testOutputText.toLowerCase().contains("man's best friend"));   // PNG
         assertTrue(testOutputText.toLowerCase().contains("student affairs"));     // JPEG
         assertTrue(testOutputText.toLowerCase().contains("hope house"));          // TIF
@@ -64,7 +64,7 @@ public class ImageServiceTest {
         String testFile = "src/test/resources/Cat-Wikipedia.pdf";
 
         try {
-            imageService.addOCRToImage(Path.of(testFile), Path.of(String.valueOf(tmpFolder), "Cat-Wikipedia"));
+            imageService.addOCRToImage(Path.of(testFile), tmpFolder.resolve("Cat-Wikipedia"));
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("failed to generate PDF with OCR."));
         }
