@@ -12,12 +12,12 @@ import java.nio.file.Path;
 public class OCR4UOptions {
     @Option(names = {"-i", "--input-path"},
             required = true,
-            description = "Required. Filename of PDF.")
+            description = "Required. Filename of PDF, image, or txt file with list of images.")
     private Path inputPath;
 
     @Option(names = {"-o", "--output-path"},
             required = true,
-            description = "Required. Path to a directory. Destination for PDF with OCR.")
+            description = "Required. Path to a directory or a file. Destination for PDF with OCR.")
     private Path outputPath;
 
     public Path getInputPath() {
