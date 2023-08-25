@@ -9,13 +9,13 @@ import java.util.List;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Service for adding OCR to images
+ * Service for Tesseract OCR (add OCR to images)
  * Supported image formats: PNG, JPEG, TIFF, JP2, GIF, BMP
  * for full list of supported image formats and requirements: https://tesseract-ocr.github.io/tessdoc/InputFormats
  * @author krwong
  */
-public class ImageService {
-    private static final Logger log = getLogger(ImageService.class);
+public class TesseractService {
+    private static final Logger log = getLogger(TesseractService.class);
 
     /**
      * Run Tesseract, add OCR to image(s), and convert to a PDF
@@ -24,7 +24,7 @@ public class ImageService {
      * @param inputPath an image or txt file with a list of image filenames
      * @param outputPath destination for output PDF
      */
-    public Path addOCRToImage(Path inputPath, Path outputPath) throws Exception {
+    public Path addOcrToImage(Path inputPath, Path outputPath) throws Exception {
         String tesseract = "tesseract";
         String inputFile = String.valueOf(inputPath);
         String outputFile = String.valueOf(outputPath);
@@ -46,5 +46,4 @@ public class ImageService {
 
         return Path.of(outputFile + ".pdf");
     }
-
 }
