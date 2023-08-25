@@ -1,7 +1,7 @@
 package ocr4u;
 
-import ocr4u.services.ImageService;
-import ocr4u.services.PDFService;
+import ocr4u.services.TesseractService;
+import ocr4u.services.OcrMyPdfService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -27,16 +27,16 @@ public class OCR4UCommandIT {
     @TempDir
     public Path tmpFolder;
 
-    private PDFService pdfService;
-    private ImageService imageService;
+    private OcrMyPdfService pdfService;
+    private TesseractService imageService;
 
     @BeforeEach
     public void setup() throws Exception {
         command = new CommandLine(new CLIMain());
         System.setOut(new PrintStream(outputStreamCaptor));
 
-        pdfService = new PDFService();
-        imageService = new ImageService();
+        pdfService = new OcrMyPdfService();
+        imageService = new TesseractService();
     }
 
     @Test
@@ -62,22 +62,44 @@ public class OCR4UCommandIT {
     }
 
     @Test
-    public void addOCRtoImageTest() throws Exception {
+    public void addOcrtoImageTesseractTest() throws Exception {
         String testFile = "src/test/resources/dog-wikipedia.png";
         String[] args = new String[] {
                 "ocr4u",
-                "image_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
+                "image_add_ocr_tesseract", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);
     }
 
     @Test
-    public void addOCRtoMultipleImagesTest() throws Exception {
+    public void addOcrtoMultipleImagesTesseractTest() throws Exception {
         String testFile = "src/test/resources/listofimages.txt";
         String[] args = new String[] {
                 "ocr4u",
-                "image_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
+                "image_add_ocr_tesseract", "-i", testFile, "-o", tmpFolder.toString()
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void addOcrtoImageOcrMyPdfTest() throws Exception {
+        String testFile = "src/test/resources/dog-wikipedia.png";
+        String[] args = new String[] {
+                "ocr4u",
+                "image_add_ocr_ocrmypdf", "-i", testFile, "-o", tmpFolder.toString()
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void addOcrtoMultipleImagesOcrMyPdfTest() throws Exception {
+        String testFile = "src/test/resources/listofimages.txt";
+        String[] args = new String[] {
+                "ocr4u",
+                "image_add_ocr_ocrmypdf", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);

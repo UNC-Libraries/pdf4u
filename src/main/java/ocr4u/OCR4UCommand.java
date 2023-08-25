@@ -1,8 +1,8 @@
 package ocr4u;
 
 import ocr4u.options.OCR4UOptions;
-import ocr4u.services.ImageService;
-import ocr4u.services.PDFService;
+import ocr4u.services.TesseractService;
+import ocr4u.services.OcrMyPdfService;
 import org.slf4j.Logger;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -21,14 +21,14 @@ public class OCR4UCommand {
     @ParentCommand
     private CLIMain parentCommand;
 
-    private PDFService pdfService = new PDFService();
-    private ImageService imageService = new ImageService();
+    private OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
+    private TesseractService tesseractService = new TesseractService();
 
     @Command(name = "pdf_add_ocr",
             description = "Perform OCR on a PDF")
-    public int pdfAddOCR(@Mixin OCR4UOptions options) throws Exception {
+    public int pdfAddOcr(@Mixin OCR4UOptions options) throws Exception {
         try {
-            pdfService.addOcrToPdf(options.getInputPath(), options.getOutputPath());
+            ocrMyPdfService.addOcrToPdf(options.getInputPath(), options.getOutputPath());
             return 0;
         } catch (Exception e) {
             outputLogger.info("{}", e.getMessage());
@@ -41,7 +41,7 @@ public class OCR4UCommand {
             description = "Perform OCR on a PDF")
     public int pdfRedoOCR(@Mixin OCR4UOptions options) throws Exception {
         try {
-            pdfService.redoExistingOCR(options.getInputPath(), options.getOutputPath());
+            ocrMyPdfService.redoPdfExistingOcr(options.getInputPath(), options.getOutputPath());
             return 0;
         } catch (Exception e) {
             outputLogger.info("{}", e.getMessage());
@@ -50,11 +50,24 @@ public class OCR4UCommand {
         }
     }
 
-    @Command(name = "image_add_ocr",
+    @Command(name = "image_add_ocr_tesseract",
             description = "Perform OCR on an image or multiple images and convert to PDF")
-    public int imageAddOCR(@Mixin OCR4UOptions options) throws Exception {
+    public int imageAddOCRTesseract(@Mixin OCR4UOptions options) throws Exception {
         try {
-            imageService.addOCRToImage(options.getInputPath(), options.getOutputPath());
+            tesseractService.addOcrToImage(options.getInputPath(), options.getOutputPath());
+            return 0;
+        } catch (Exception e) {
+            outputLogger.info("{}", e.getMessage());
+            log.error("Failed to OCR the image(s)", e);
+            return 1;
+        }
+    }
+
+    @Command(name = "image_add_ocr_ocrmypdf",
+            description = "Convert an image or multiple images to PDF and perform OCR")
+    public int imageAddOCRmyPDF(@Mixin OCR4UOptions options) throws Exception {
+        try {
+            ocrMyPdfService.addOcrToImage(options.getInputPath(), options.getOutputPath());
             return 0;
         } catch (Exception e) {
             outputLogger.info("{}", e.getMessage());
