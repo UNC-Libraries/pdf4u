@@ -7,7 +7,8 @@ import picocli.CommandLine;
  * @author krwong
  */
 @CommandLine.Command(subcommands = {
-        OCR4UCommand.class
+        OCRMyPDFCommand.class,
+        TesseractCommand.class
 })
 public class CLIMain {
 

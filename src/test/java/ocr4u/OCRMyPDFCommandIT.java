@@ -1,6 +1,5 @@
 package ocr4u;
 
-import ocr4u.services.TesseractService;
 import ocr4u.services.OcrMyPdfService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,8 +14,8 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class OCR4UCommandIT {
-    private static final Logger log = getLogger(OCR4UCommandIT.class);
+public class OCRMyPDFCommandIT {
+    private static final Logger log = getLogger(OCRMyPDFCommandIT.class);
     private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
     protected final PrintStream originalOut = System.out;
     protected final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -28,7 +27,6 @@ public class OCR4UCommandIT {
     public Path tmpFolder;
 
     private OcrMyPdfService pdfService;
-    private TesseractService imageService;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -36,14 +34,13 @@ public class OCR4UCommandIT {
         System.setOut(new PrintStream(outputStreamCaptor));
 
         pdfService = new OcrMyPdfService();
-        imageService = new TesseractService();
     }
 
     @Test
-    public void addOCRtoPDFTest() throws Exception {
+    public void addOcrToPdfTest() throws Exception {
         String testFile = "src/test/resources/cat.pdf";
         String[] args = new String[] {
-                "ocr4u",
+                "ocrmypdf",
                 "pdf_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
         };
 
@@ -51,33 +48,11 @@ public class OCR4UCommandIT {
     }
 
     @Test
-    public void redoExistingOCRTest() throws Exception {
+    public void redoExistingOcrTest() throws Exception {
         String testFile = "src/test/resources/Cat-Wikipedia.pdf";
         String[] args = new String[] {
-                "ocr4u",
+                "ocrmypdf",
                 "pdf_redo_ocr", "-i", testFile, "-o", tmpFolder.toString()
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
-    public void addOcrtoImageTesseractTest() throws Exception {
-        String testFile = "src/test/resources/dog-wikipedia.png";
-        String[] args = new String[] {
-                "ocr4u",
-                "image_add_ocr_tesseract", "-i", testFile, "-o", tmpFolder.toString()
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
-    public void addOcrtoMultipleImagesTesseractTest() throws Exception {
-        String testFile = "src/test/resources/listofimages.txt";
-        String[] args = new String[] {
-                "ocr4u",
-                "image_add_ocr_tesseract", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);
@@ -87,8 +62,8 @@ public class OCR4UCommandIT {
     public void addOcrtoImageOcrMyPdfTest() throws Exception {
         String testFile = "src/test/resources/dog-wikipedia.png";
         String[] args = new String[] {
-                "ocr4u",
-                "image_add_ocr_ocrmypdf", "-i", testFile, "-o", tmpFolder.toString()
+                "ocrmypdf",
+                "image_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);
@@ -98,8 +73,8 @@ public class OCR4UCommandIT {
     public void addOcrtoMultipleImagesOcrMyPdfTest() throws Exception {
         String testFile = "src/test/resources/listofimages.txt";
         String[] args = new String[] {
-                "ocr4u",
-                "image_add_ocr_ocrmypdf", "-i", testFile, "-o", tmpFolder.toString()
+                "ocrmypdf",
+                "image_add_ocr", "-i", testFile, "-o", tmpFolder.toString()
         };
 
         executeExpectSuccess(args);

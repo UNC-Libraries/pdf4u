@@ -10,9 +10,9 @@ For a full list of Tesseract's input formats, refer to https://tesseract-ocr.git
 Tesseract does not support PDFs.
 
 ##Commands
-- `ocr4u pdf_add_ocr -i <inputPath> -o <outputPath>`: add OCR to a PDF
-- `ocr4u pdf_redo_ocr -i <inputPath> -o <outputPath>`: redo existing OCR in a PDF
-- `ocr4u image_add_ocr_tesseract -i <inputPath> -o <outputPath>`: add OCR to an image or multiple images using Tesseract. 
+- `ocr4u ocrmypdf pdf_add_ocr -i <inputPath> -o <outputPath>`: add OCR to a PDF
+- `ocr4u ocrmypdf pdf_redo_ocr -i <inputPath> -o <outputPath>`: redo existing OCR in a PDF
+- `ocr4u ocrmypdf image_add_ocr -i <inputPath> -o <outputPath>`: add OCR to an image or multiple images using OCRmyPDF.
 For multiple images, use a txt file with a list of image filenames for the inputPath.
-- `ocr4u image_add_ocr_ocr4u -i <inputPath> -o <outputPath>`: add OCR to an image or multiple images using OCRmyPDF. 
+- `ocr4u tesseract image_add_ocr -i <inputPath> -o <outputPath>`: add OCR to an image or multiple images using Tesseract. 
 For multiple images, use a txt file with a list of image filenames for the inputPath.
