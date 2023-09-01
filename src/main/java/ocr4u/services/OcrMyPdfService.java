@@ -20,6 +20,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class OcrMyPdfService {
     private static final Logger log = getLogger(OcrMyPdfService.class);
 
+    private ServiceHelper serviceHelper = new ServiceHelper();
+
     public Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
     public Path tmpFilesDir = tmpDir.resolve("ocr4u");
 
@@ -30,7 +32,6 @@ public class OcrMyPdfService {
             throw new RuntimeException(e);
         }
     }
-
 
     /**
      * Run OCRmyPDF and add OCR to a PDF
@@ -43,17 +44,10 @@ public class OcrMyPdfService {
         String ocrMyPdf = "ocrmypdf";
         String inputFile = String.valueOf(inputPath);
         String outputFile = String.valueOf(outputPath.resolve(inputPath.getFileName()));
-        List<String> command = Arrays.asList(ocrMyPdf, inputFile, outputFile);
+        var command = Arrays.asList(ocrMyPdf, inputFile, outputFile);
 
         try {
-            ProcessBuilder builder = new ProcessBuilder(command);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            String cmdOutput = new String(process.getInputStream().readAllBytes());
-            log.debug(cmdOutput);
-            if (process.waitFor() != 0) {
-                throw new Exception("Command exited with status code " + process.waitFor());
-            }
+            serviceHelper.commandProcess(command);
         } catch (Exception e) {
             throw new Exception(inputPath + " failed to generate PDF with OCR.", e);
         }
@@ -72,17 +66,10 @@ public class OcrMyPdfService {
         String redoOcr = "--redo-ocr";
         String inputFile = String.valueOf(inputPath);
         String outputFile = String.valueOf(outputPath.resolve(inputPath.getFileName()));
-        List<String> command = Arrays.asList(ocrMyPdf, redoOcr, inputFile, outputFile);
+        var command = Arrays.asList(ocrMyPdf, redoOcr, inputFile, outputFile);
 
         try {
-            ProcessBuilder builder = new ProcessBuilder(command);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            String cmdOutput = new String(process.getInputStream().readAllBytes());
-            log.debug(cmdOutput);
-            if (process.waitFor() != 0) {
-                throw new Exception("Command exited with status code " + process.waitFor());
-            }
+            serviceHelper.commandProcess(command);
         } catch (Exception e) {
             throw new Exception(inputPath + " failed to generate PDF with OCR.", e);
         }
@@ -101,17 +88,10 @@ public class OcrMyPdfService {
         String ocrMyPdf = "ocrmypdf";
         String inputFile = String.valueOf(convertImagesToPdf(inputPath));
         String outputFile = outputPath + ".pdf";
-        List<String> command = Arrays.asList(ocrMyPdf, inputFile, outputFile);
+        var command = Arrays.asList(ocrMyPdf, inputFile, outputFile);
 
         try {
-            ProcessBuilder builder = new ProcessBuilder(command);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            String cmdOutput = new String(process.getInputStream().readAllBytes());
-            log.debug(cmdOutput);
-            if (process.waitFor() != 0) {
-                throw new Exception("Command exited with status code " + process.waitFor());
-            }
+            serviceHelper.commandProcess(command);
         } catch (Exception e) {
             throw new Exception(inputPath + " failed to generate PDF with OCR.", e);
         }
@@ -124,7 +104,7 @@ public class OcrMyPdfService {
      * @param inputPath an image or txt file with a list of image filenames
      */
     public Path convertImagesToPdf(Path inputPath) throws Exception {
-        ArrayList<String> command = new ArrayList<>();
+        List<String> command = new ArrayList<>();
         command.add("img2pdf");
         if (FilenameUtils.getExtension(String.valueOf(inputPath)).equals("txt")) {
             List<String> listOfFiles = Files.readAllLines(inputPath, StandardCharsets.UTF_8);
@@ -139,14 +119,7 @@ public class OcrMyPdfService {
         command.add("--first-frame-only");
 
         try {
-            ProcessBuilder builder = new ProcessBuilder(command);
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-            String cmdOutput = new String(process.getInputStream().readAllBytes());
-            log.debug(cmdOutput);
-            if (process.waitFor() != 0) {
-                throw new Exception("Command exited with status code " + process.waitFor());
-            }
+            serviceHelper.commandProcess(command);
         } catch (Exception e) {
             throw new Exception(inputPath + " failed to generate PDF.", e);
         }
