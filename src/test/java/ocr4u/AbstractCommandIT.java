@@ -30,7 +30,7 @@ public class AbstractCommandIT {
     }
 
     @BeforeEach
-    public void setup() throws Exception {
+    public void setupBaseCommand() throws Exception {
         out.reset();
         System.setOut(new PrintStream(out));
         output = null;
