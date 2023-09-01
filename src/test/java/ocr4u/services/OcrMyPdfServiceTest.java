@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OcrMyPdfServiceTest {
@@ -60,7 +61,7 @@ public class OcrMyPdfServiceTest {
 
         Path testOutput = ocrMyPdfService.convertImagesToPdf(Path.of(testFile));
 
-        assertEquals(tmpFolder.resolve("dog-wikipedia.pdf"), testOutput);
+        assertEquals(ocrMyPdfService.tmpFilesDir.resolve("dog-wikipedia.pdf"), testOutput);
         assertTrue(Files.exists(tmpFolder.resolve("dog-wikipedia.pdf")));
     }
 
@@ -70,7 +71,7 @@ public class OcrMyPdfServiceTest {
 
         Path testOutput = ocrMyPdfService.convertImagesToPdf(Path.of(testFile));
 
-        assertEquals(tmpFolder.resolve("listofimages.pdf"), testOutput);
+        assertEquals(ocrMyPdfService.tmpFilesDir.resolve("listofimages.pdf"), testOutput);
     }
 
     @Test
@@ -105,11 +106,11 @@ public class OcrMyPdfServiceTest {
     public void testAddOcrToUnsupportedImageFormatFail() throws Exception {
         String testFile = "src/test/resources/Cat-Wikipedia.pdf";
 
-        try {
-            ocrMyPdfService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("Cat-Wikipedia"));
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("failed to generate PDF"));
-        }
+        Exception exception = assertThrows(Exception.class,
+                () -> ocrMyPdfService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("Cat-Wikipedia")),
+                "src/test/resources/Cat-Wikipedia.pdf failed to generate PDF");
+
+        assertTrue(exception.getMessage().contains("failed to generate PDF"));
     }
 
 }
