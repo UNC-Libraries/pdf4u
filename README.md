@@ -6,8 +6,13 @@ ocr4u uses Tesseract to add OCR to an image or multiple images and outputs a PDF
 Users can also request Tesseract as the OCR engine instead of OCRmyPDF.
 
 Supported image formats: PNG, JPEG, TIFF, JP2, GIF, BMP
-For a full list of Tesseract's input formats, refer to https://tesseract-ocr.github.io/tessdoc/InputFormats.
+For a full list of Tesseract's input formats, refer to the [Tesseract documentation](https://tesseract-ocr.github.io/tessdoc/InputFormats).
 Tesseract does not support PDFs.
+
+##Commandline Utilities
+OCRmyPDF version 14.4.0 ([installation instructions](https://ocrmypdf.readthedocs.io/en/latest/installation.html))
+
+Tesseract version 5.3.2 ([installation instructions](https://tesseract-ocr.github.io/tessdoc/Installation.html))
 
 ##Commands
 - `ocr4u ocrmypdf pdf_add_ocr -i <inputPath> -o <outputPath>`: add OCR to a PDF
