@@ -13,27 +13,26 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ImageServiceTest {
+public class TesseractServiceTest {
     private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
 
     @TempDir
     public Path tmpFolder;
 
-    private ImageService imageService;
+    private TesseractService tesseractService;
 
     @BeforeEach
     public void setup() throws Exception {
         System.setOut(new PrintStream(outputStreamCaptor));
 
-        imageService = new ImageService();
+        tesseractService = new TesseractService();
     }
 
     @Test
-    public void testAddOCRToImage() throws Exception {
+    public void testAddOcrToImage() throws Exception {
         String testFile = "src/test/resources/dog-wikipedia.png";
 
-        Path testOutput = imageService.addOCRToImage(Path.of(testFile),
-                tmpFolder.resolve("dog"));
+        Path testOutput = tesseractService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("dog"));
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("dog.pdf"), testOutput);
@@ -42,11 +41,11 @@ public class ImageServiceTest {
     }
 
     @Test
-    public void testAddOCRToMultipleImages() throws Exception {
+    public void testTesseractAddOCRToMultipleImages() throws Exception {
         String testFile = "src/test/resources/listofimages.txt";
 
-        Path testOutput = imageService.addOCRToImage(Path.of(testFile),
-                tmpFolder.resolve("multipleimages"));
+        Path testOutput = tesseractService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("multipleimages"));
+
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("multipleimages.pdf"), testOutput);
@@ -60,11 +59,11 @@ public class ImageServiceTest {
     }
 
     @Test
-    public void testAddOCRToUnsupportedImageFormatFail() throws Exception {
+    public void testTesseractAddOCRToUnsupportedImageFormatFail() throws Exception {
         String testFile = "src/test/resources/Cat-Wikipedia.pdf";
 
         try {
-            imageService.addOCRToImage(Path.of(testFile), tmpFolder.resolve("Cat-Wikipedia"));
+            tesseractService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("Cat-Wikipedia"));
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("failed to generate PDF with OCR."));
         }

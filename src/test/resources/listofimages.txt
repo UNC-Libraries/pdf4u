@@ -1,5 +1,4 @@
 src/test/resources/dog-wikipedia.png
-src/test/resources/encantoscreening.jpeg
 src/test/resources/img308b-YY1975-Dean.Boulton.jpeg
 src/test/resources/SAAACAM-HopeHouse_transparency_with-title_merged.tif
 src/test/resources/05589_1970s_01_0002.jp2
