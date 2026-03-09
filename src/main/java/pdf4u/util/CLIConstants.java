@@ -1,4 +1,4 @@
-package ocr4u.util;
+package pdf4u.util;
 
 import static org.slf4j.LoggerFactory.getLogger;
 

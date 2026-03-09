@@ -1,23 +1,20 @@
-# ocr4u
+# pdf4u
 OCR: optical character recognition
 
-ocr4u uses OCRmyPDF to add OCR to a PDF or redo OCR for a PDF with existing OCR.
-ocr4u uses Tesseract to add OCR to an image or multiple images and outputs a PDF.
-Users can also request Tesseract as the OCR engine instead of OCRmyPDF.
+pdf4u uses OCRmyPDF to add OCR to an image/PDF or redo OCR for a PDF with existing OCR. 
+OCRmyPDF uses Tesseract as its OCR engine.
 
-Supported image formats: PNG, JPEG, TIFF, JP2, GIF, BMP
-For a full list of Tesseract's input formats, refer to the [Tesseract documentation](https://tesseract-ocr.github.io/tessdoc/InputFormats).
-Tesseract does not support PDFs.
+pdf4u uses kraken to add OCR to an image or multiple images and outputs a PDF.
+
+OCRmyPDF supported formats: PNG, JPEG, TIFF, JP2, GIF, BMP, PDF
+For a full list of OCRmyPDF/Tesseract's input formats, refer to the [Tesseract documentation](https://tesseract-ocr.github.io/tessdoc/InputFormats).
+
+Kraken does not list its supported formats.
 
 ##Commandline Utilities
 OCRmyPDF version 14.4.0 ([installation instructions](https://ocrmypdf.readthedocs.io/en/latest/installation.html))
 
-Tesseract version 5.3.2 ([installation instructions](https://tesseract-ocr.github.io/tessdoc/Installation.html))
-
 ##Commands
-- `ocr4u ocrmypdf pdf_add_ocr -i <inputPath> -o <outputPath>`: add OCR to a PDF
-- `ocr4u ocrmypdf pdf_redo_ocr -i <inputPath> -o <outputPath>`: redo existing OCR in a PDF
-- `ocr4u ocrmypdf image_add_ocr -i <inputPath> -o <outputPath>`: add OCR to an image or multiple images using OCRmyPDF.
-For multiple images, use a txt file with a list of image filenames for the inputPath.
-- `ocr4u tesseract image_add_ocr -i <inputPath> -o <outputPath>`: add OCR to an image or multiple images using Tesseract. 
-For multiple images, use a txt file with a list of image filenames for the inputPath.
+- `pdf4u ocrmypdf add_ocr -i <inputPath> -o <outputPath>`: add OCR to an image or PDF
+- `pdf4u ocrmypdf redo_ocr -i <inputPath> -o <outputPath>`: redo existing OCR in a PDF
+- `pdf4u kraken add_ocr -i <inputPath> -o <outputPath> -t <textPath>`: add OCR to an image

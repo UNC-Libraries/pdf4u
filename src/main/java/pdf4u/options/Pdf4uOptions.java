@@ -1,4 +1,4 @@
-package ocr4u.options;
+package pdf4u.options;
 
 import picocli.CommandLine.Option;
 
@@ -6,10 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Options for OCR4U
+ * Options for pdf4u
  * @author krwong
  */
-public class OCR4UOptions {
+public class Pdf4uOptions {
     @Option(names = {"-i", "--input-path"},
             required = true,
             description = "Required. Filename of PDF, image, or txt file with list of images.")
@@ -20,14 +20,16 @@ public class OCR4UOptions {
             description = "Required. Path to a directory or a file. Destination for PDF with OCR.")
     private Path outputPath;
 
+    @Option(names = {"-t", "--text-path"},
+            description = "Path to text file")
+    private Path textPath;
+
     public Path getInputPath() {
         return inputPath;
     }
 
     public void setInputPath(Path inputPath) {
-        if (Files.exists(inputPath)) {
-            this.inputPath = inputPath;
-        }
+        this.inputPath = inputPath;
     }
 
     public Path getOutputPath() {
@@ -35,8 +37,14 @@ public class OCR4UOptions {
     }
 
     public void setOutputPath(Path outputPath) {
-        if (Files.isWritable(outputPath)) {
-            this.outputPath = outputPath;
-        }
+        this.outputPath = outputPath;
+    }
+
+    public Path getTextPath() {
+        return textPath;
+    }
+
+    public void setTextPath(Path textPath) {
+        this.textPath = textPath;
     }
 }
