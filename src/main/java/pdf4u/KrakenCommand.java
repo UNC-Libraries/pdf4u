@@ -30,7 +30,7 @@ public class KrakenCommand {
     @Command(name = "add_ocr",
         description = "Using Kraken, perform OCR on an image and convert to HOCR. " +
             "Replace the text in the HOCR with the text in the TXT file. Then convert to PDF.")
-    public int imageAddOcrKraken(@Mixin Pdf4uOptions options) throws Exception {
+    public int imageAddOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
             Path hocrFile = krakenService.addOcrToImage(options);
             hocrToPdfService.convertHocrToPdf(options, hocrFile);

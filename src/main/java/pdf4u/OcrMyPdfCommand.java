@@ -24,7 +24,7 @@ public class OcrMyPdfCommand {
 
     @Command(name = "add_ocr",
             description = "Perform OCR on a PDF or image. Image(s) will be converted to PDF")
-    public int imageAddOcrMyPdf(@Mixin Pdf4uOptions options) throws Exception {
+    public int fileAddOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
             ocrMyPdfService.addOcrToFile(options);
             return 0;
@@ -36,8 +36,8 @@ public class OcrMyPdfCommand {
     }
 
     @Command(name = "pdf_redo_ocr",
-            description = "Perform OCR on a PDF")
-    public int pdfRedoOcrMyPdf(@Mixin Pdf4uOptions options) throws Exception {
+            description = "Redo OCR on a PDF")
+    public int pdfRedoOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
             ocrMyPdfService.redoPdfExistingOcr(options);
             return 0;
