@@ -6,6 +6,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
+import pdf4u.errors.CommandException;
 import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 import pdf4u.util.FileService;
@@ -18,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import static pdf4u.util.CLIConstants.outputLogger;
 
 /**
  * Service for converting HOCR to searchable PDF
@@ -67,7 +67,7 @@ public class HocrToPdfService {
         String outputFilename = FilenameUtils.getBaseName(inputFile);
         Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
         String r = "-r";
-        String dpi = "dpi";
+        String dpi = getDpi(inputFile);
         String editedHocr = replaceHocrText(hocrFile, options.getTextPath());
 
 
@@ -79,5 +79,28 @@ public class HocrToPdfService {
         Files.deleteIfExists(Path.of(editedHocr));
 
         return outputFile;
+    }
+
+    /**
+     * Run ImageMagick identify command and return DPI
+     * DPI needed to prevent text layer from shifting/scaling in the PDF
+     * @param fileName an image file
+     * @return dpi the image dpi
+     */
+    private String getDpi(String fileName) {
+        // default dpi = 300
+        String dpi = "300";
+        String identify = "identify";
+        String format = "-format";
+        String x = "\"%x\"";
+        var command = Arrays.asList(identify, format, x, fileName);
+
+        try {
+            dpi = CommandUtility.executeCommand(command);
+        } catch (CommandException e) {
+            log.warn("Colorspace not identified: {}", e.getMessage());
+        }
+
+        return dpi;
     }
 }

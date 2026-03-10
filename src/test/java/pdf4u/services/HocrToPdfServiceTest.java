@@ -75,9 +75,14 @@ public class HocrToPdfServiceTest {
             HocrToPdfService hocrToPdfService = new HocrToPdfService();
             hocrToPdfService.convertHocrToPdf(options, mockedHocr);
 
-            mockedStatic.verify(() -> CommandUtility.executeCommandInputFile(
-                    Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
-                            "dpi"), mockedHocr.toString()));
+            mockedStatic.verify(() -> {
+                    CommandUtility.executeCommand(
+                            Arrays.asList("identify", "-format", "\"%x\"", mockedInput.toString()));
+                    CommandUtility.executeCommandInputFile(
+                            Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
+                                    "600"), mockedHocr.toString());
+            });
+
         }
     }
 }
