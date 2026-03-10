@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static pdf4u.util.CLIConstants.outputLogger;
 
 /**
  * Service for converting HOCR to searchable PDF
@@ -67,13 +68,12 @@ public class HocrToPdfService {
         Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
         String r = "-r";
         String dpi = "dpi";
-        String lessThan = "<";
         String editedHocr = replaceHocrText(hocrFile, options.getTextPath());
 
 
-        var command = Arrays.asList(HOCR2PDF, i, inputFile, o, outputFile.toString(), r, dpi, lessThan, editedHocr);
+        var command = Arrays.asList(HOCR2PDF, i, inputFile, o, outputFile.toString(), r, dpi);
         log.debug("Running hocr2pdf command: {}", String.join(" ", command));
-        CommandUtility.executeCommand(command);
+        CommandUtility.executeCommandInputFile(command, editedHocr);
 
         // delete intermediate files after PDF generated
         Files.deleteIfExists(Path.of(editedHocr));

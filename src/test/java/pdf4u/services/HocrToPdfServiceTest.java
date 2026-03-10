@@ -21,6 +21,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 public class HocrToPdfServiceTest {
@@ -68,15 +69,15 @@ public class HocrToPdfServiceTest {
             options.setInputPath(mockedInput);
             options.setOutputPath(tmpFolder.resolve("test_output"));
             options.setTextPath(mockedText);
-            mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
+            mockedStatic.when(() -> CommandUtility.executeCommandInputFile(anyList(), anyString()))
                     .thenReturn(mockedOutput.toString());
 
             HocrToPdfService hocrToPdfService = new HocrToPdfService();
             hocrToPdfService.convertHocrToPdf(options, mockedHocr);
 
-            mockedStatic.verify(() -> CommandUtility.executeCommand(
+            mockedStatic.verify(() -> CommandUtility.executeCommandInputFile(
                     Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
-                            "dpi", "<", mockedHocr.toString())));
+                            "dpi"), mockedHocr.toString()));
         }
     }
 }
