@@ -3,7 +3,6 @@ package pdf4u.util;
 import org.slf4j.Logger;
 
 import java.io.FileNotFoundException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -18,6 +17,17 @@ public class FileService {
 
     private FileService() {}
 
+    /**
+     * Build the output file path
+     * If the 'outputPath' param is a directory, create the file path with /outputPath/outputFilename.extension
+     *    e.g. inputs '/path, filename, .pdf' return '/path/filename.pdf'
+     * If the 'outputPath' param is a file, create the file path with /outputPath.extension
+     *    e.g. inputs '/path/otherfile, filename, .pdf' return '/path/otherfile.pdf'
+     * @param outputPath pdf4u options' output path
+     * @param outputFilename base name of pdf4u options' input path
+     * @param extension output file type
+     * @return outputPath output path for file
+     */
     public static Path buildOutputFile(Path outputPath, String outputFilename, String extension)
             throws Exception {
         // if the output path is a directory
@@ -28,16 +38,6 @@ public class FileService {
             return Path.of(outputPath + extension);
         } else {
             throw new FileNotFoundException(outputPath + " does not exist.");
-        }
-    }
-
-    public static void validateFiles(String inputFile, Path outputFile) throws Exception {
-        if (inputFile.equals(outputFile.toString())) {
-            throw new IllegalArgumentException("Input and output paths cannot be the same");
-        }
-
-        if (Files.exists(outputFile)) {
-            throw new FileAlreadyExistsException("File already exists at " + outputFile);
         }
     }
 }

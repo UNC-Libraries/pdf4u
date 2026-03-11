@@ -1,6 +1,5 @@
 package pdf4u.services;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,9 +9,7 @@ import org.mockito.Mockito;
 import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,7 +36,7 @@ public class KrakenServiceTest {
     }
 
     @Test
-    public void testAddOcrToImage() throws Exception {
+    public void testGenerateHocrFromImage() throws Exception {
         try (MockedStatic<CommandUtility> mockedStatic = Mockito.mockStatic(CommandUtility.class)) {
             Path mockedInput = tmpFolder.resolve("test_input.png");
             Path mockedOutput = tmpFolder.resolve("test_output.hocr");
@@ -50,7 +47,7 @@ public class KrakenServiceTest {
                     .thenReturn(mockedOutput.toString());
 
             KrakenService krakenService = new KrakenService();
-            krakenService.addOcrToImage(options);
+            krakenService.generateHocrFromImage(options);
 
             mockedStatic.verify(() -> CommandUtility.executeCommand(
                     Arrays.asList("kraken", "-h", "-i", mockedInput.toString(), mockedOutput.toString(), "segment",
@@ -66,7 +63,7 @@ public class KrakenServiceTest {
         options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
 
         var e = assertThrows(IllegalArgumentException.class, () -> {
-            krakenService.addOcrToImage(options);
+            krakenService.generateHocrFromImage(options);
         });
         assertTrue(e.getMessage().contains("kraken does not accept input PDFs"));
     }

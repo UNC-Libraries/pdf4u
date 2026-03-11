@@ -22,10 +22,10 @@ public class KrakenService {
     private static final String KRAKEN = "kraken";
 
     /**
-     * Run Kraken, add OCR to image(s), and create an .hocr file
+     * Run Kraken and create an .hocr file
      * @param options pdf4u options
      */
-    public Path addOcrToImage(Pdf4uOptions options) throws Exception {
+    public Path generateHocrFromImage(Pdf4uOptions options) throws Exception {
         if (FilenameUtils.getExtension(options.getInputPath().toString()).matches("pdf")) {
             throw new IllegalArgumentException("kraken does not accept input PDFs, "
                 + options.getInputPath().toString() + " not allowed");

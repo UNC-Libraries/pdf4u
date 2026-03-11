@@ -8,17 +8,14 @@ import pdf4u.services.OcrMyPdfService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OcrMyPdfCommandIT {
-    private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-
     @TempDir
     public Path tmpFolder;
 
@@ -27,20 +24,18 @@ public class OcrMyPdfCommandIT {
     @BeforeEach
     public void setup() throws Exception {
         ocrMyPdfService = new OcrMyPdfService();
-        ocrMyPdfService.tmpFilesDir = tmpFolder;
-
-        System.setOut(new PrintStream(outputStreamCaptor));
     }
 
     @Test
     public void testPdfWithoutOcr() throws Exception {
         // screenshot pasted into LibreOffice Writer document and print to PDF
         Path testFile = Path.of("src/test/resources/cat.pdf");
+        Path testOutput = tmpFolder.resolve("cat.pdf");
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
         options.setOutputPath(tmpFolder.resolve("cat"));
 
-        Path testOutput = ocrMyPdfService.addOcrToFile(options);
+        ocrMyPdfService.addOcrToFile(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("cat.pdf"), testOutput);
@@ -77,11 +72,12 @@ public class OcrMyPdfCommandIT {
     @Test
     public void testAddOcrToImage() throws Exception {
         Path testFile = Path.of("src/test/resources/dog-wikipedia.png");
+        Path testOutput = tmpFolder.resolve("dog.pdf");
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
         options.setOutputPath(tmpFolder.resolve("dog"));
 
-        Path testOutput = ocrMyPdfService.addOcrToFile(options);
+        ocrMyPdfService.addOcrToFile(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("dog.pdf"), testOutput);
@@ -92,15 +88,15 @@ public class OcrMyPdfCommandIT {
     @Test
     public void testAddOcrToMultipleImages() throws Exception {
         Path testFile = Path.of("src/test/resources/listofimages.txt");
+        Path testOutput = tmpFolder.resolve("multipleimages_preprocess.pdf");
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
         options.setOutputPath(tmpFolder.resolve("multipleimages"));
 
-        Path testOutput = ocrMyPdfService.addOcrToFile(options);
+        ocrMyPdfService.addOcrToFile(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(tmpFolder.resolve("multipleimages.pdf"), testOutput);
-        assertTrue(Files.exists(tmpFolder.resolve("multipleimages.pdf")));
+        assertTrue(Files.exists(testOutput));
         // OCRMyPDF appears to be unable to perform OCR on the test JP2 and GIF images
         assertTrue(testOutputText.toLowerCase().contains("man's best friend"));   // PNG
         assertTrue(testOutputText.toLowerCase().contains("student affairs"));     // JPEG

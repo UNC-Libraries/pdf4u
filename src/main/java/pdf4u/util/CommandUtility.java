@@ -67,6 +67,12 @@ public class CommandUtility {
         }
     }
 
+    /**
+     * Run a given command with an input file
+     * @param command the command to be executed
+     * @param inputFile the input file to be passed in
+     * @return command output
+     */
     public static String executeCommandInputFile(List<String> command, String inputFile) {
         log.debug("Executing command with timeout {}s: {}", MAX_TIMEOUT_SECONDS, String.join(" ", command));
         CommandLine cmdLine = CommandLine.parse(command.getFirst());
@@ -82,7 +88,7 @@ public class CommandUtility {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
 
-        try (FileInputStream fileInputStream = new FileInputStream(inputFile);) {
+        try (FileInputStream fileInputStream = new FileInputStream(inputFile)) {
             executor.setStreamHandler(new PumpStreamHandler(outputStream, errorStream, fileInputStream));
             executor.execute(cmdLine);
             return outputStream + "\n" + errorStream;

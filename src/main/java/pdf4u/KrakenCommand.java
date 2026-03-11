@@ -28,11 +28,11 @@ public class KrakenCommand {
     private HocrToPdfService hocrToPdfService = new HocrToPdfService();
 
     @Command(name = "add_ocr",
-        description = "Using Kraken, perform OCR on an image and convert to HOCR. " +
-            "Replace the text in the HOCR with the text in the TXT file. Then convert to PDF.")
+        description = "Using Kraken, generate a hOCR file from an image. " +
+            "Replace the text in the hOCR with the text in the TXT file. Then convert to PDF.")
     public int imageAddOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
-            Path hocrFile = krakenService.addOcrToImage(options);
+            Path hocrFile = krakenService.generateHocrFromImage(options);
             hocrToPdfService.convertHocrToPdf(options, hocrFile);
             return 0;
         } catch (Exception e) {

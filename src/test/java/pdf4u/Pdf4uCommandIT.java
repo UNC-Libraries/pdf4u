@@ -40,7 +40,6 @@ public class Pdf4uCommandIT {
         hocrToPdfService = new HocrToPdfService();
         krakenService = new KrakenService();
         ocrMyPdfService = new OcrMyPdfService();
-        ocrMyPdfService.tmpFilesDir = tmpFolder;
     }
 
     @Test

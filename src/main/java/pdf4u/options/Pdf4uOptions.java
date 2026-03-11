@@ -2,7 +2,6 @@ package pdf4u.options;
 
 import picocli.CommandLine.Option;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -20,9 +19,9 @@ public class Pdf4uOptions {
             description = "Required. Path to a directory or a file. Destination for PDF with OCR.")
     private Path outputPath;
 
-    @Option(names = {"-t", "--text-path"},
-            description = "Path to text file")
-    private Path textPath;
+    @Option(names = {"-t", "--transcript-path"},
+            description = "Path to text file of the image's LLM generated transcript.")
+    private Path transcriptPath;
 
     public Path getInputPath() {
         return inputPath;
@@ -40,11 +39,11 @@ public class Pdf4uOptions {
         this.outputPath = outputPath;
     }
 
-    public Path getTextPath() {
-        return textPath;
+    public Path getTranscriptPath() {
+        return transcriptPath;
     }
 
-    public void setTextPath(Path textPath) {
-        this.textPath = textPath;
+    public void setTranscriptPath(Path transcriptPath) {
+        this.transcriptPath = transcriptPath;
     }
 }

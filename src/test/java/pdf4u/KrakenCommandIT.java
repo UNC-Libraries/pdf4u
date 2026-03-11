@@ -43,9 +43,9 @@ public class KrakenCommandIT {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
         options.setOutputPath(tmpFolder.resolve("alt21"));
-        options.setTextPath(textFile);
+        options.setTranscriptPath(textFile);
 
-        Path testHocr = krakenService.addOcrToImage(options);
+        Path testHocr = krakenService.generateHocrFromImage(options);
 
         assertEquals(tmpFolder.resolve("alt21.hocr"), testHocr);
         assertTrue(Files.exists(tmpFolder.resolve("alt21.hocr")));
@@ -58,7 +58,7 @@ public class KrakenCommandIT {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
         options.setOutputPath(tmpFolder.resolve("alt38"));
-        options.setTextPath(textFile);
+        options.setTranscriptPath(textFile);
         Path mockedHocr = tmpFolder.resolve("test_hocr.hocr");
         Files.copy(Paths.get("src/test/resources/alt38.hocr"), mockedHocr);
 
@@ -78,7 +78,7 @@ public class KrakenCommandIT {
         options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
 
         var e = assertThrows(IllegalArgumentException.class, () -> {
-            krakenService.addOcrToImage(options);
+            krakenService.generateHocrFromImage(options);
         });
         assertTrue(e.getMessage().contains("kraken does not accept input PDFs"));
     }

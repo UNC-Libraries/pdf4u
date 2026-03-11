@@ -30,7 +30,6 @@ public class OcrMyPdfServiceTest {
     public void setup() throws Exception {
         closeable = openMocks(this);
         ocrMyPdfService = new OcrMyPdfService();
-        tmpFolder = ocrMyPdfService.tmpFilesDir;
     }
 
     @AfterEach
@@ -43,7 +42,7 @@ public class OcrMyPdfServiceTest {
     public void testAddOcrToImage() throws Exception {
         try (MockedStatic<CommandUtility> mockedStatic = Mockito.mockStatic(CommandUtility.class)) {
             Path mockedInput = tmpFolder.resolve("test_input.png");
-            String mockedIntermediatePdf = tmpFolder.resolve("test_input.pdf").toString();
+            String mockedIntermediatePdf = tmpFolder.resolve("test_input_preprocess.pdf").toString();
             Path mockedOutput = tmpFolder.resolve("test_output.pdf");
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
@@ -114,10 +113,7 @@ public class OcrMyPdfServiceTest {
             Path output = ocrMyPdfService.convertImagesToPdf(input);
 
             mockedStatic.verify(() -> CommandUtility.executeCommand(
-                    Arrays.asList("img2pdf", "src/test/resources/dog-wikipedia.png",
-                            "src/test/resources/img308b-YY1975-Dean.Boulton.jpeg",
-                            "src/test/resources/SAAACAM-HopeHouse_transparency_with-title_merged.tif",
-                            "src/test/resources/friday.gif", "src/test/resources/goals.bmp",
+                    Arrays.asList("img2pdf", "--from-file", input.toString(),
                             "--output", output.toString(), "--first-frame-only")));
         }
     }
