@@ -11,7 +11,9 @@ import pdf4u.errors.CommandException;
 import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -104,16 +106,18 @@ public class OcrMyPdfServiceTest {
     @Test
     public void testConvertImageToPdf() throws Exception {
         try (MockedStatic<CommandUtility> mockedStatic = Mockito.mockStatic(CommandUtility.class)) {
-            Path input = Path.of("src/test/resources/listofimages.txt");
+            Path mockedInput = tmpFolder.resolve("listofimages.txt");
+            Files.copy(Paths.get("src/test/resources/listofimages.txt"), mockedInput);
             Path mockedOutput = tmpFolder.resolve("listofimages.pdf");
             mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
                     .thenReturn(mockedOutput.toString());
 
             OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
-            Path output = ocrMyPdfService.convertImagesToPdf(input);
+            Path output = ocrMyPdfService.convertImagesToPdf(mockedInput);
 
             mockedStatic.verify(() -> CommandUtility.executeCommand(
-                    Arrays.asList("img2pdf", "--from-file", input.toString(),
+                    Arrays.asList("img2pdf", "--from-file",
+                            tmpFolder.resolve("listofimages_preprocess.lst").toString(),
                             "--output", output.toString(), "--first-frame-only")));
         }
     }

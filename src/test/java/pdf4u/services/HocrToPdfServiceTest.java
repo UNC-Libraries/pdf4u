@@ -2,7 +2,6 @@ package pdf4u.services;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,15 +44,15 @@ public class HocrToPdfServiceTest {
     @Test
     public void testReplaceHocrText() throws Exception {
         Path mockedHocr = tmpFolder.resolve("test_hocr.hocr");
-        Files.copy(Paths.get("src/test/resources/alt21.jpg"), mockedHocr);
+        Files.copy(Paths.get("src/test/resources/alt21.hocr"), mockedHocr);
         Path textFile = Path.of("src/test/resources/alt21.txt");
 
         String output = hocrToPdfService.replaceHocrText(mockedHocr, textFile);
         Document doc = Jsoup.parse(new File(output), "UTF-8");
         Elements lines = doc.getElementsByClass("ocr_line");
-        for (Element line : lines) {
-            assertTrue(line.text().contains("NORTH CAROLINA NEWS BUREAU"));
-        }
+        assertTrue(lines.first().text().contains("Blue Ridge Parkway—Doughton Meadows"));
+        assertTrue(lines.last().text().contains("NORTH CAROLINA NEWS BUREAU DEPT. CONSERVATION & DEVELOPMENT " +
+                "P. O. BOX 2719 RALEIGH, NORTH CAROLINA [Alleghany County] 30958"));
     }
 
     @Test
@@ -68,20 +67,20 @@ public class HocrToPdfServiceTest {
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
             options.setOutputPath(tmpFolder.resolve("test_output"));
-            options.setTextPath(mockedText);
+            options.setTranscriptPath(mockedText);
+            mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
+                    .thenReturn("600");
             mockedStatic.when(() -> CommandUtility.executeCommandInputFile(anyList(), anyString()))
                     .thenReturn(mockedOutput.toString());
 
             HocrToPdfService hocrToPdfService = new HocrToPdfService();
             hocrToPdfService.convertHocrToPdf(options, mockedHocr);
 
-            mockedStatic.verify(() -> {
-                    CommandUtility.executeCommand(
-                            Arrays.asList("identify", "-format", "\"%x\"", mockedInput.toString()));
-                    CommandUtility.executeCommandInputFile(
-                            Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
-                                    "600"), mockedHocr.toString());
-            });
+            mockedStatic.verify(() -> CommandUtility.executeCommand(
+                    Arrays.asList("gm", "identify", "-format", "\"%x\"", mockedInput.toString())));
+            mockedStatic.verify(() -> CommandUtility.executeCommandInputFile(
+                    Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
+                            "600"), mockedHocr.toString()));
 
         }
     }

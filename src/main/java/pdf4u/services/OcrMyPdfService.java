@@ -6,10 +6,10 @@ import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 import pdf4u.util.FileService;
 
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -96,12 +96,38 @@ public class OcrMyPdfService {
         // add --from-file to read list of inputs from a text file
         if (FilenameUtils.getExtension(inputFile).equals("txt")) {
             command.add("--from-file");
+            inputFile = createLst(inputPath).toString();
         }
         command.addAll(Arrays.asList(inputFile, output, outputFile.toString(), firstFrameOnly));
 
         log.debug("Running img2pdf command: {}", String.join(" ", command));
         CommandUtility.executeCommand(command);
 
+        // delete intermediate files after PDF generated
+        if (FilenameUtils.getExtension(inputFile).equals("lst")) {
+            Files.deleteIfExists(Path.of(inputFile));
+        }
+
         return outputFile;
+    }
+
+    /**
+     * When receiving a .txt input, build a NUL-separated lst file
+     * img2pdf's --from-file option only accepts a NUL-separated list, not newlines
+     * @param inputPath pdf4u options' input path
+     * @return lst file with NUL-separated list
+     */
+    private Path createLst(Path inputPath) throws Exception {
+        Path lst = Path.of(FilenameUtils.removeExtension(inputPath.toString()) + "_preprocess.lst");
+        try (OutputStream os = Files.newOutputStream(lst)) {
+            // read lines and write each followed by a NUL byte
+            for (String line : Files.readAllLines(inputPath, StandardCharsets.UTF_8)) {
+                if (line == null || line.isEmpty()) continue; // optional: skip empty lines
+                os.write(line.getBytes(StandardCharsets.UTF_8));
+                os.write(0); // NUL separator required by --from-file
+            }
+        }
+
+        return lst;
     }
 }

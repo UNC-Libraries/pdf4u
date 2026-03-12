@@ -161,7 +161,8 @@ public class HocrToPdfService {
         var command = Arrays.asList(gm, identify, format, x, fileName);
 
         try {
-            dpi = CommandUtility.executeCommand(command);
+            // remove trailing text and only keep number
+            dpi = CommandUtility.executeCommand(command).replaceAll("[^\\d.]", "");
         } catch (CommandException e) {
             log.warn("Colorspace not identified: {}", e.getMessage());
         }

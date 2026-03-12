@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -61,12 +62,13 @@ public class OcrMyPdfCommandIT {
 
     @Test
     public void testConvertMultipleImagesToPdf() throws Exception {
-        String testFile = "src/test/resources/listofimages.txt";
+        Path testFile = tmpFolder.resolve("listofimages.txt");
+        Files.copy(Paths.get("src/test/resources/listofimages.txt"), testFile);
 
-        Path testOutput = ocrMyPdfService.convertImagesToPdf(Path.of(testFile));
+        Path testOutput = ocrMyPdfService.convertImagesToPdf(testFile);
 
-        assertEquals(tmpFolder.resolve("listofimages.pdf"), testOutput);
-        assertTrue(Files.exists(tmpFolder.resolve("listofimages.pdf")));
+        assertEquals(tmpFolder.resolve("listofimages_preprocess.pdf"), testOutput);
+        assertTrue(Files.exists(testOutput));
     }
 
     @Test
@@ -88,7 +90,7 @@ public class OcrMyPdfCommandIT {
     @Test
     public void testAddOcrToMultipleImages() throws Exception {
         Path testFile = Path.of("src/test/resources/listofimages.txt");
-        Path testOutput = tmpFolder.resolve("multipleimages_preprocess.pdf");
+        Path testOutput = tmpFolder.resolve("multipleimages.pdf");
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
         options.setOutputPath(tmpFolder.resolve("multipleimages"));
