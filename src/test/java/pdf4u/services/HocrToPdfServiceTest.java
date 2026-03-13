@@ -13,11 +13,14 @@ import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,7 +45,7 @@ public class HocrToPdfServiceTest {
     }
 
     @Test
-    public void testReplaceHocrText() throws Exception {
+    public void testReplaceHocrTextTranscriptLinesExceedsHocrLines() throws Exception {
         Path mockedHocr = tmpFolder.resolve("test_hocr.hocr");
         Files.copy(Paths.get("src/test/resources/alt21.hocr"), mockedHocr);
         Path textFile = Path.of("src/test/resources/alt21.txt");
@@ -53,6 +56,32 @@ public class HocrToPdfServiceTest {
         assertTrue(lines.first().text().contains("Blue Ridge Parkway—Doughton Meadows"));
         assertTrue(lines.last().text().contains("NORTH CAROLINA NEWS BUREAU DEPT. CONSERVATION & DEVELOPMENT " +
                 "P. O. BOX 2719 RALEIGH, NORTH CAROLINA [Alleghany County] 30958"));
+    }
+
+    @Test
+    public void testReplaceHocrTextNoTranscriptLinesOrHocrLines() throws Exception {
+        Path mockedHocr = tmpFolder.resolve("test_hocr.hocr");
+        Files.copy(Paths.get("src/test/resources/alt21_0lines.hocr"), mockedHocr);
+        Path textFile = tmpFolder.resolve("test_text.txt");
+        Files.write(textFile, Collections.singleton(""), StandardCharsets.UTF_8);
+
+        String output = hocrToPdfService.replaceHocrText(mockedHocr, textFile);
+        Document doc = Jsoup.parse(new File(output), "UTF-8");
+        Elements lines = doc.getElementsByClass("ocr_line");
+        assertFalse(lines.first().hasText());
+    }
+
+    @Test
+    public void testReplaceHocrTextTranscriptLinesOrHocrLines() throws Exception {
+        Path mockedHocr = tmpFolder.resolve("test_hocr.hocr");
+        Files.copy(Paths.get("src/test/resources/alt21_0lines.hocr"), mockedHocr);
+        Path textFile = Path.of("src/test/resources/alt21.txt");
+
+        String output = hocrToPdfService.replaceHocrText(mockedHocr, textFile);
+        Document doc = Jsoup.parse(new File(output), "UTF-8");
+        Elements lines = doc.getElementsByClass("ocr_line");
+        assertTrue(lines.first().text().contains("Blue Ridge Parkway—Doughton Meadows NORTH CAROLINA NEWS BUREAU " +
+                "DEPT. CONSERVATION & DEVELOPMENT P. O. BOX 2719 RALEIGH, NORTH CAROLINA [Alleghany County] 30958"));
     }
 
     @Test

@@ -67,7 +67,6 @@ public class OcrMyPdfCommandIT {
 
         Path testOutput = ocrMyPdfService.convertImagesToPdf(testFile);
 
-        assertEquals(tmpFolder.resolve("listofimages_preprocess.pdf"), testOutput);
         assertTrue(Files.exists(testOutput));
     }
 

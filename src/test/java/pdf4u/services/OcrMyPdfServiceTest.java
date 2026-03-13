@@ -1,6 +1,7 @@
 package pdf4u.services;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,13 @@ import pdf4u.util.CommandUtility;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -44,28 +50,32 @@ public class OcrMyPdfServiceTest {
     public void testAddOcrToImage() throws Exception {
         try (MockedStatic<CommandUtility> mockedStatic = Mockito.mockStatic(CommandUtility.class)) {
             Path mockedInput = tmpFolder.resolve("test_input.png");
-            String mockedIntermediatePdf = tmpFolder.resolve("test_input_preprocess.pdf").toString();
             Path mockedOutput = tmpFolder.resolve("test_output.pdf");
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
             options.setOutputPath(tmpFolder.resolve("test_output"));
-            mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
-                    .thenReturn(mockedOutput.toString());
+            AtomicReference<List<String>> captured = new AtomicReference<>();
+            mockedStatic.when(() -> CommandUtility.executeCommand(Mockito.any()))
+                    .thenAnswer(invocation -> {
+                        List<String> cmd = new ArrayList<>(invocation.getArgument(0));
+                        captured.set(cmd);
+                        return mockedOutput.toString();
+                    });
 
             OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
             ocrMyPdfService.addOcrToFile(options);
 
-            mockedStatic.verify(() -> CommandUtility.executeCommand(
-                    Arrays.asList("img2pdf", mockedInput.toString(), "--output",
-                            mockedIntermediatePdf, "--first-frame-only")));
-            mockedStatic.verify(() -> CommandUtility.executeCommand(
-                    Arrays.asList("ocrmypdf", mockedIntermediatePdf, mockedOutput.toString())));
+            List<String> cmd = captured.get();
+            assertNotNull(cmd);
+            assertTrue(cmd.contains("ocrmypdf"));
+            assertTrue(FilenameUtils.getBaseName(cmd.get(1)).startsWith("test_input"));
+            assertTrue(FilenameUtils.getExtension(cmd.get(1)).contains("pdf"));
+            assertEquals(mockedOutput.toString(), cmd.get(2));
         }
     }
 
     @Test
     public void testAddOcrToPdfWithoutOcr() throws Exception {
-        // screenshot pasted into LibreOffice Writer document and print to PDF
         try (MockedStatic<CommandUtility> mockedStatic = Mockito.mockStatic(CommandUtility.class)) {
             Path mockedInput = tmpFolder.resolve("test_input.pdf");
             Path mockedOutput = tmpFolder.resolve("test_output.pdf");
@@ -104,21 +114,32 @@ public class OcrMyPdfServiceTest {
     }
 
     @Test
-    public void testConvertImageToPdf() throws Exception {
+    public void testConvertImagesToPdf() throws Exception {
         try (MockedStatic<CommandUtility> mockedStatic = Mockito.mockStatic(CommandUtility.class)) {
             Path mockedInput = tmpFolder.resolve("listofimages.txt");
             Files.copy(Paths.get("src/test/resources/listofimages.txt"), mockedInput);
             Path mockedOutput = tmpFolder.resolve("listofimages.pdf");
-            mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
-                    .thenReturn(mockedOutput.toString());
+            AtomicReference<List<String>> captured = new AtomicReference<>();
+            mockedStatic.when(() -> CommandUtility.executeCommand(Mockito.any()))
+                    .thenAnswer(invocation -> {
+                        List<String> cmd = new ArrayList<>(invocation.getArgument(0));
+                        captured.set(cmd);
+                        return mockedOutput.toString();
+                    });
 
             OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
-            Path output = ocrMyPdfService.convertImagesToPdf(mockedInput);
+            ocrMyPdfService.convertImagesToPdf(mockedInput);
 
-            mockedStatic.verify(() -> CommandUtility.executeCommand(
-                    Arrays.asList("img2pdf", "--from-file",
-                            tmpFolder.resolve("listofimages_preprocess.lst").toString(),
-                            "--output", output.toString(), "--first-frame-only")));
+            List<String> cmd = captured.get();
+            assertNotNull(cmd);
+            assertTrue(cmd.contains("img2pdf"));
+            assertTrue(cmd.contains("--from-file"));
+            assertTrue(FilenameUtils.getBaseName(cmd.get(2)).startsWith("listofimages"));
+            assertTrue(FilenameUtils.getExtension(cmd.get(2)).contains("lst"));
+            assertTrue(cmd.contains("--output"));
+            assertTrue(FilenameUtils.getBaseName(cmd.get(4)).startsWith("listofimages"));
+            assertTrue(FilenameUtils.getExtension(cmd.get(4)).contains("pdf"));
+            assertTrue(cmd.contains("--first-frame-only"));
         }
     }
 

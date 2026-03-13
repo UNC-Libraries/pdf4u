@@ -86,48 +86,62 @@ public class OcrMyPdfService {
     public Path convertImagesToPdf(Path inputPath) throws Exception {
         String inputFile = String.valueOf(inputPath);
         String output = "--output";
-        Path outputFile = Path.of(FilenameUtils.removeExtension(inputFile) + "_preprocess.pdf");
+        Path outputPath = prepareTempPath(inputFile, ".pdf");
         // --first-frame-only: only let the first frame of every multi-frame input image be converted
         // into a page in the resulting PDF
         String firstFrameOnly = "--first-frame-only";
+        boolean isTxtFile = FilenameUtils.getExtension(inputFile).equals("txt");
 
-        List<String> command = new ArrayList<>();
-        command.add(IMG2PDF);
-        // add --from-file to read list of inputs from a text file
-        if (FilenameUtils.getExtension(inputFile).equals("txt")) {
-            command.add("--from-file");
-            inputFile = createLst(inputPath).toString();
+        try {
+            List<String> command = new ArrayList<>();
+            command.add(IMG2PDF);
+            // add --from-file to read list of inputs from a text file
+            if (isTxtFile) {
+                command.add("--from-file");
+                inputFile = createLst(inputPath).toString();
+            }
+            command.addAll(Arrays.asList(inputFile, output, outputPath.toString(), firstFrameOnly));
+
+            log.debug("Running img2pdf command: {}", String.join(" ", command));
+            CommandUtility.executeCommand(command);
+        } finally {
+            // delete intermediate files after PDF generated
+            if (isTxtFile) {
+                Files.deleteIfExists(Path.of(inputFile));
+            }
         }
-        command.addAll(Arrays.asList(inputFile, output, outputFile.toString(), firstFrameOnly));
 
-        log.debug("Running img2pdf command: {}", String.join(" ", command));
-        CommandUtility.executeCommand(command);
-
-        // delete intermediate files after PDF generated
-        if (FilenameUtils.getExtension(inputFile).equals("lst")) {
-            Files.deleteIfExists(Path.of(inputFile));
-        }
-
-        return outputFile;
+        return outputPath;
     }
 
     /**
      * When receiving a .txt input, build a NUL-separated lst file
      * img2pdf's --from-file option only accepts a NUL-separated list, not newlines
      * @param inputPath pdf4u options' input path
-     * @return lst file with NUL-separated list
+     * @return outputPath lst file with NUL-separated list
      */
     private Path createLst(Path inputPath) throws Exception {
-        Path lst = Path.of(FilenameUtils.removeExtension(inputPath.toString()) + "_preprocess.lst");
-        try (OutputStream os = Files.newOutputStream(lst)) {
+        Path lstPath = prepareTempPath(inputPath.toString(), ".lst");
+        try (OutputStream os = Files.newOutputStream(lstPath)) {
             // read lines and write each followed by a NUL byte
             for (String line : Files.readAllLines(inputPath, StandardCharsets.UTF_8)) {
-                if (line == null || line.isEmpty()) continue; // optional: skip empty lines
+                if (line.isEmpty()) continue; // optional: skip empty lines
                 os.write(line.getBytes(StandardCharsets.UTF_8));
                 os.write(0); // NUL separator required by --from-file
             }
         }
 
-        return lst;
+        return lstPath;
+    }
+
+    /**
+     * Create temporary file path and delete temporary file if it already exists
+     * @return temp path for file
+     */
+    private Path prepareTempPath(String fileName, String extension) throws Exception {
+        Path tempPath = Files.createTempFile(FilenameUtils.getBaseName(fileName), extension);
+        // delete temporary path so that it can be written over by whatever utility has requested a path
+        Files.delete(tempPath);
+        return tempPath;
     }
 }
