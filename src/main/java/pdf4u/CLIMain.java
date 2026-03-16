@@ -1,14 +1,15 @@
-package ocr4u;
+package pdf4u;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
 /**
  * Main class for the CLI utils
  * @author krwong
  */
-@CommandLine.Command(subcommands = {
-        OCRMyPDFCommand.class,
-        TesseractCommand.class
+@Command(subcommands = {
+        KrakenCommand.class,
+        OcrMyPdfCommand.class
 })
 public class CLIMain {
 

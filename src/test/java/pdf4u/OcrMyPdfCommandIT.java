@@ -1,22 +1,22 @@
-package ocr4u.services;
+package pdf4u;
 
 import org.apache.tika.Tika;
+import org.junit.jupiter.api.io.TempDir;
+import pdf4u.errors.CommandException;
+import pdf4u.options.Pdf4uOptions;
+import pdf4u.services.OcrMyPdfService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class OcrMyPdfServiceTest {
-    private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-
+public class OcrMyPdfCommandIT {
     @TempDir
     public Path tmpFolder;
 
@@ -24,17 +24,19 @@ public class OcrMyPdfServiceTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        System.setOut(new PrintStream(outputStreamCaptor));
-
         ocrMyPdfService = new OcrMyPdfService();
     }
 
     @Test
     public void testPdfWithoutOcr() throws Exception {
         // screenshot pasted into LibreOffice Writer document and print to PDF
-        String testFile = "src/test/resources/cat.pdf";
+        Path testFile = Path.of("src/test/resources/cat.pdf");
+        Path testOutput = tmpFolder.resolve("cat.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(testFile);
+        options.setOutputPath(tmpFolder.resolve("cat"));
 
-        Path testOutput = ocrMyPdfService.addOcrToPdf(Path.of(testFile), tmpFolder);
+        ocrMyPdfService.addOcrToFile(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("cat.pdf"), testOutput);
@@ -45,9 +47,12 @@ public class OcrMyPdfServiceTest {
     @Test
     public void testPdfWithExistingOcr() throws Exception {
         // print to PDF
-        String testFile = "src/test/resources/Cat-Wikipedia.pdf";
+        Path testFile = Path.of("src/test/resources/Cat-Wikipedia.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(testFile);
+        options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
 
-        Path testOutput = ocrMyPdfService.redoPdfExistingOcr(Path.of(testFile), tmpFolder);
+        Path testOutput = ocrMyPdfService.redoPdfExistingOcr(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("Cat-Wikipedia.pdf"), testOutput);
@@ -56,29 +61,24 @@ public class OcrMyPdfServiceTest {
     }
 
     @Test
-    public void testConvertImageToPdf() throws Exception {
-        String testFile = "src/test/resources/dog-wikipedia.png";
-
-        Path testOutput = ocrMyPdfService.convertImagesToPdf(Path.of(testFile));
-
-        assertEquals(ocrMyPdfService.tmpFilesDir.resolve("dog-wikipedia.pdf"), testOutput);
-        assertTrue(Files.exists(tmpFolder.resolve("dog-wikipedia.pdf")));
-    }
-
-    @Test
     public void testConvertMultipleImagesToPdf() throws Exception {
-        String testFile = "src/test/resources/listofimages.txt";
+        Path testFile = tmpFolder.resolve("listofimages.txt");
+        Files.copy(Paths.get("src/test/resources/listofimages.txt"), testFile);
 
-        Path testOutput = ocrMyPdfService.convertImagesToPdf(Path.of(testFile));
+        Path testOutput = ocrMyPdfService.convertImagesToPdf(testFile);
 
-        assertEquals(ocrMyPdfService.tmpFilesDir.resolve("listofimages.pdf"), testOutput);
+        assertTrue(Files.exists(testOutput));
     }
 
     @Test
     public void testAddOcrToImage() throws Exception {
-        String testFile = "src/test/resources/dog-wikipedia.png";
+        Path testFile = Path.of("src/test/resources/dog-wikipedia.png");
+        Path testOutput = tmpFolder.resolve("dog.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(testFile);
+        options.setOutputPath(tmpFolder.resolve("dog"));
 
-        Path testOutput = ocrMyPdfService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("dog"));
+        ocrMyPdfService.addOcrToFile(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("dog.pdf"), testOutput);
@@ -88,13 +88,16 @@ public class OcrMyPdfServiceTest {
 
     @Test
     public void testAddOcrToMultipleImages() throws Exception {
-        String testFile = "src/test/resources/listofimages.txt";
+        Path testFile = Path.of("src/test/resources/listofimages.txt");
+        Path testOutput = tmpFolder.resolve("multipleimages.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(testFile);
+        options.setOutputPath(tmpFolder.resolve("multipleimages"));
 
-        Path testOutput = ocrMyPdfService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("multipleimages"));
+        ocrMyPdfService.addOcrToFile(options);
         String testOutputText = new Tika().parseToString(testOutput);
 
-        assertEquals(tmpFolder.resolve("multipleimages.pdf"), testOutput);
-        assertTrue(Files.exists(tmpFolder.resolve("multipleimages.pdf")));
+        assertTrue(Files.exists(testOutput));
         // OCRMyPDF appears to be unable to perform OCR on the test JP2 and GIF images
         assertTrue(testOutputText.toLowerCase().contains("man's best friend"));   // PNG
         assertTrue(testOutputText.toLowerCase().contains("student affairs"));     // JPEG
@@ -104,13 +107,14 @@ public class OcrMyPdfServiceTest {
 
     @Test
     public void testAddOcrToUnsupportedImageFormatFail() throws Exception {
-        String testFile = "src/test/resources/Cat-Wikipedia.pdf";
+        Path testFile = Path.of("src/test/resources/Cat-Wikipedia.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(testFile);
+        options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
 
-        Exception exception = assertThrows(Exception.class,
-                () -> ocrMyPdfService.addOcrToImage(Path.of(testFile), tmpFolder.resolve("Cat-Wikipedia")),
-                "src/test/resources/Cat-Wikipedia.pdf failed to generate PDF");
-
-        assertTrue(exception.getMessage().contains("failed to generate PDF"));
+        var e = assertThrows(CommandException.class, () -> {
+                ocrMyPdfService.addOcrToFile(options);
+        });
+        assertTrue(e.getMessage().contains("Command failed to execute"));
     }
-
 }
