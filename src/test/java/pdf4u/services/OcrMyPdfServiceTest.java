@@ -6,6 +6,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import pdf4u.errors.CommandException;
@@ -15,16 +17,15 @@ import pdf4u.util.CommandUtility;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.times;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 public class OcrMyPdfServiceTest {
@@ -33,6 +34,9 @@ public class OcrMyPdfServiceTest {
 
     @TempDir
     public Path tmpFolder;
+
+    @Captor
+    private ArgumentCaptor<List<String>> captor;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -54,18 +58,14 @@ public class OcrMyPdfServiceTest {
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
             options.setOutputPath(tmpFolder.resolve("test_output"));
-            AtomicReference<List<String>> captured = new AtomicReference<>();
-            mockedStatic.when(() -> CommandUtility.executeCommand(Mockito.any()))
-                    .thenAnswer(invocation -> {
-                        List<String> cmd = new ArrayList<>(invocation.getArgument(0));
-                        captured.set(cmd);
-                        return mockedOutput.toString();
-                    });
+            mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
+                    .thenReturn(mockedOutput.toString());
 
             OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
             ocrMyPdfService.addOcrToFile(options);
 
-            List<String> cmd = captured.get();
+            mockedStatic.verify(() -> CommandUtility.executeCommand(captor.capture()), times(2));
+            List<String> cmd = captor.getValue();
             assertNotNull(cmd);
             assertTrue(cmd.contains("ocrmypdf"));
             assertTrue(FilenameUtils.getBaseName(cmd.get(1)).startsWith("test_input"));
@@ -119,18 +119,14 @@ public class OcrMyPdfServiceTest {
             Path mockedInput = tmpFolder.resolve("listofimages.txt");
             Files.copy(Paths.get("src/test/resources/listofimages.txt"), mockedInput);
             Path mockedOutput = tmpFolder.resolve("listofimages.pdf");
-            AtomicReference<List<String>> captured = new AtomicReference<>();
-            mockedStatic.when(() -> CommandUtility.executeCommand(Mockito.any()))
-                    .thenAnswer(invocation -> {
-                        List<String> cmd = new ArrayList<>(invocation.getArgument(0));
-                        captured.set(cmd);
-                        return mockedOutput.toString();
-                    });
+            mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
+                    .thenReturn(mockedOutput.toString());
 
             OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
             ocrMyPdfService.convertImagesToPdf(mockedInput);
 
-            List<String> cmd = captured.get();
+            mockedStatic.verify(() -> CommandUtility.executeCommand(captor.capture()));
+            List<String> cmd = captor.getValue();
             assertNotNull(cmd);
             assertTrue(cmd.contains("img2pdf"));
             assertTrue(cmd.contains("--from-file"));
