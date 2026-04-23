@@ -23,6 +23,10 @@ public class Pdf4uOptions {
             description = "Path to text file of the image's LLM generated transcript.")
     private Path transcriptPath;
 
+    @Option(names = {"-tt", "--text-type"},
+        description = "Type of text in file. Handwritten or printed text.")
+    private String textType;
+
     public Path getInputPath() {
         return inputPath;
     }
@@ -45,5 +49,13 @@ public class Pdf4uOptions {
 
     public void setTranscriptPath(Path transcriptPath) {
         this.transcriptPath = transcriptPath;
+    }
+
+    public String getTextType() {
+        return textType;
+    }
+
+    public void setTextType(String textType) {
+        this.textType = textType;
     }
 }

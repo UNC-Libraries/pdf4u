@@ -98,6 +98,18 @@ public class Pdf4uCommandIT {
         executeExpectSuccess(args);
     }
 
+    @Test
+    public void testPdf4uTextType() throws Exception {
+        String testFile = "src/test/resources/alt21.jpg";
+        String textFile = "src/test/resources/alt21.txt";
+        String[] args = new String[] {
+                "pdf4u",
+                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile, "-tt", "handwritten-cursive"
+        };
+
+        executeExpectSuccess(args);
+    }
+
     protected void executeExpectSuccess(String[] args) {
         int result = command.execute(args);
         output = out.toString();
