@@ -99,12 +99,24 @@ public class Pdf4uCommandIT {
     }
 
     @Test
-    public void testPdf4uTextType() throws Exception {
+    public void testPdf4uTextTypeHandwritten() throws Exception {
         String testFile = "src/test/resources/alt21.jpg";
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
                 "pdf4u",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile, "-tt", "handwritten-cursive"
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void testPdf4uTextTypePrinted() throws Exception {
+        String testFile = "src/test/resources/alt21.jpg";
+        String textFile = "src/test/resources/alt21.txt";
+        String[] args = new String[] {
+                "pdf4u",
+                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile, "-tt", "printed"
         };
 
         executeExpectSuccess(args);
