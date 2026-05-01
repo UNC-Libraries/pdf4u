@@ -12,6 +12,7 @@ import picocli.CommandLine;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -91,6 +92,18 @@ public class Pdf4uCommandIT {
     public void testKrakenAddOcrToImage() throws Exception {
         String testFile = "src/test/resources/alt21.jpg";
         String textFile = "src/test/resources/alt21.txt";
+        String[] args = new String[] {
+                "kraken",
+                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void testKrakenAddOcrToMultipleImages() throws Exception {
+        String testFile = "src/test/resources/listofimageshandwritten.txt";
+        String textFile = "src/test/resources/listoftranscripts.txt";
         String[] args = new String[] {
                 "kraken",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile
