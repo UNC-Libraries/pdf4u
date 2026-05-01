@@ -38,8 +38,8 @@ public class Pdf4uCommand {
             if (options.getTextType().equalsIgnoreCase("printed")) {
                 ocrMyPdfService.addOcrToFile(options);
             } else {
-                Path hocrFile = krakenService.generateHocrFromImage(options);
-                hocrToPdfService.convertHocrToPdf(options, hocrFile);
+                krakenService.setHocrToPdfService(hocrToPdfService);
+                krakenService.addOcrToFile(options);
             }
 
             return 0;

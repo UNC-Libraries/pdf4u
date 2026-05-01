@@ -1,0 +1,2 @@
+src/test/resources/alt21.jpg
+src/test/resources/alt38.jpg

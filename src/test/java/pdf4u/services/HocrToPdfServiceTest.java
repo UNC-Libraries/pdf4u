@@ -92,23 +92,19 @@ public class HocrToPdfServiceTest {
             Files.copy(Paths.get("src/test/resources/alt21.hocr"), mockedHocr);
             Path mockedText = tmpFolder.resolve("alt21.txt");
             Files.copy(Paths.get("src/test/resources/alt21.txt"), mockedText);
-            Path mockedOutput = tmpFolder.resolve("test_output.pdf");
-            Pdf4uOptions options = new Pdf4uOptions();
-            options.setInputPath(mockedInput);
-            options.setOutputPath(tmpFolder.resolve("test_output"));
-            options.setTranscriptPath(mockedText);
+            Path mockedOutput = tmpFolder.resolve("test_output");
             mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
                     .thenReturn("600");
             mockedStatic.when(() -> CommandUtility.executeCommandInputFile(anyList(), anyString()))
                     .thenReturn(mockedOutput.toString());
 
             HocrToPdfService hocrToPdfService = new HocrToPdfService();
-            hocrToPdfService.convertHocrToPdf(options, mockedHocr);
+            hocrToPdfService.convertHocrToPdf(mockedInput, mockedHocr, mockedOutput, mockedText);
 
             mockedStatic.verify(() -> CommandUtility.executeCommand(
                     Arrays.asList("gm", "identify", "-format", "\"%x\"", mockedInput.toString())));
             mockedStatic.verify(() -> CommandUtility.executeCommandInputFile(
-                    Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
+                    Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput + ".pdf", "-r",
                             "600"), mockedHocr.toString()));
 
         }

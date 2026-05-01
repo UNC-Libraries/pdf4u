@@ -1,5 +1,6 @@
 package pdf4u.util;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 
 import java.io.FileNotFoundException;
@@ -39,5 +40,16 @@ public class FileService {
         } else {
             throw new FileNotFoundException(outputPath + " does not exist.");
         }
+    }
+
+    /**
+     * Create temporary file path and delete temporary file if it already exists
+     * @return temp path for file
+     */
+    public static Path prepareTempPath(String fileName, String extension) throws Exception {
+        Path tempPath = Files.createTempFile(FilenameUtils.getBaseName(fileName), extension);
+        // delete temporary path so that it can be written over by whatever utility has requested a path
+        Files.delete(tempPath);
+        return tempPath;
     }
 }

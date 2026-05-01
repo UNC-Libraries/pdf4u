@@ -39,6 +39,7 @@ public class Pdf4uCommandIT {
 
         hocrToPdfService = new HocrToPdfService();
         krakenService = new KrakenService();
+        krakenService.setHocrToPdfService(hocrToPdfService);
         ocrMyPdfService = new OcrMyPdfService();
     }
 

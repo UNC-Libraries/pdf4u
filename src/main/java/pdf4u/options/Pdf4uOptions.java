@@ -20,7 +20,7 @@ public class Pdf4uOptions {
     private Path outputPath;
 
     @Option(names = {"-t", "--transcript-path"},
-            description = "Path to text file of the image's LLM generated transcript.")
+            description = "Path to text file of the image's LLM generated transcript, or txt file with list of transcripts.")
     private Path transcriptPath;
 
     @Option(names = {"-tt", "--text-type"},

@@ -9,8 +9,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.ParentCommand;
 
-import java.nio.file.Path;
-
 import static org.slf4j.LoggerFactory.getLogger;
 import static pdf4u.util.CLIConstants.outputLogger;
 
@@ -24,16 +22,16 @@ public class KrakenCommand {
     @ParentCommand
     private CLIMain parentCommand;
 
-    private KrakenService krakenService = new KrakenService();
     private HocrToPdfService hocrToPdfService = new HocrToPdfService();
+    private KrakenService krakenService = new KrakenService();
 
     @Command(name = "add_ocr",
         description = "Using Kraken, generate a hOCR file from an image. " +
             "Replace the text in the hOCR with the text in the TXT file. Then convert to PDF.")
     public int imageAddOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
-            Path hocrFile = krakenService.generateHocrFromImage(options);
-            hocrToPdfService.convertHocrToPdf(options, hocrFile);
+            krakenService.setHocrToPdfService(hocrToPdfService);
+            krakenService.addOcrToFile(options);
             return 0;
         } catch (Exception e) {
             outputLogger.info("{}", e.getMessage());
