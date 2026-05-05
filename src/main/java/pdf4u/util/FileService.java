@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -47,9 +48,8 @@ public class FileService {
      * @return temp path for file
      */
     public static Path prepareTempPath(String fileName, String extension) throws Exception {
-        Path tempPath = Files.createTempFile(FilenameUtils.getBaseName(fileName), extension);
-        // delete temporary path so that it can be written over by whatever utility has requested a path
-        Files.delete(tempPath);
-        return tempPath;
+        String baseName = FilenameUtils.getBaseName(fileName);
+        String uniqueName = baseName + "_" + UUID.randomUUID() + extension;
+        return Path.of(System.getProperty("java.io.tmpdir"), uniqueName);
     }
 }

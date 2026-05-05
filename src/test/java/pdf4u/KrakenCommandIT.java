@@ -73,7 +73,7 @@ public class KrakenCommandIT {
         Path testFile = Path.of("src/test/resources/alt38.jpg");
         Path textFile = Path.of("src/test/resources/alt38.txt");
         Path outputPath = tmpFolder.resolve("alt38");
-        Path mockedHocr = tmpFolder.resolve("alt38");
+        Path mockedHocr = tmpFolder.resolve("alt38.hocr");
         Files.copy(Paths.get("src/test/resources/alt38.hocr"), mockedHocr);
 
         Path testOutput = hocrToPdfService.convertHocrToPdf(testFile, mockedHocr, outputPath, textFile);

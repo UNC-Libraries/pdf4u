@@ -27,7 +27,7 @@ public class KrakenService {
     private static final String KRAKEN = "kraken";
     private static final String PDFUNITE = "pdfunite";
 
-    private HocrToPdfService hocrToPdfService;
+    private HocrToPdfService hocrToPdfService = new HocrToPdfService();
 
     /**
      * Run kraken to create hOCR then convert to a searcahble PDF
@@ -40,7 +40,6 @@ public class KrakenService {
         try {
             if (!FilenameUtils.getExtension(options.getInputPath().toString()).equalsIgnoreCase("txt")) {
                 Path hocrFile = generateHocrFromImage(options.getInputPath(), options.getOutputPath());
-                getHocrToPdfService();
                 hocrToPdfService.convertHocrToPdf(options.getInputPath(), hocrFile, options.getOutputPath(),
                         options.getTranscriptPath());
                 intermediateFiles.add(hocrFile);
@@ -85,8 +84,6 @@ public class KrakenService {
 
                 Path hocrOutput = FileService.prepareTempPath(imagePath.toString(), "");
                 Path hocrFile = generateHocrFromImage(imagePath, hocrOutput);
-
-                getHocrToPdfService();
                 Path individualPdf = hocrToPdfService.convertHocrToPdf(imagePath, hocrFile, pdfPath, transcriptPath);
                 intermediatePdfs.add(individualPdf.toString());
                 intermediateFiles.add(hocrFile);
@@ -151,13 +148,6 @@ public class KrakenService {
             }
         }
         return paths;
-    }
-
-    private HocrToPdfService getHocrToPdfService() {
-        if (hocrToPdfService == null) {
-            hocrToPdfService = new HocrToPdfService();
-        }
-        return hocrToPdfService;
     }
 
     public void setHocrToPdfService(HocrToPdfService hocrToPdfService) {
