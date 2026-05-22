@@ -19,6 +19,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 public class KrakenServiceTest {
     private AutoCloseable closeable;
+    private HocrToPdfService hocrToPdfService;
     private KrakenService krakenService;
 
     @TempDir
@@ -27,7 +28,9 @@ public class KrakenServiceTest {
     @BeforeEach
     public void setup() throws Exception {
         closeable = openMocks(this);
+        hocrToPdfService = new HocrToPdfService();
         krakenService = new KrakenService();
+        krakenService.setHocrToPdfService(hocrToPdfService);
     }
 
     @AfterEach
@@ -47,7 +50,7 @@ public class KrakenServiceTest {
                     .thenReturn(mockedOutput.toString());
 
             KrakenService krakenService = new KrakenService();
-            krakenService.generateHocrFromImage(options);
+            krakenService.generateHocrFromImage(options.getInputPath(), options.getOutputPath());
 
             mockedStatic.verify(() -> CommandUtility.executeCommand(
                     Arrays.asList("kraken", "-h", "-i", mockedInput.toString(), mockedOutput.toString(), "segment",
@@ -63,7 +66,7 @@ public class KrakenServiceTest {
         options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
 
         var e = assertThrows(IllegalArgumentException.class, () -> {
-            krakenService.generateHocrFromImage(options);
+            krakenService.generateHocrFromImage(options.getInputPath(), options.getOutputPath());
         });
         assertTrue(e.getMessage().contains("kraken does not accept input PDFs"));
     }

@@ -9,7 +9,8 @@ import picocli.CommandLine.Command;
  */
 @Command(subcommands = {
         KrakenCommand.class,
-        OcrMyPdfCommand.class
+        OcrMyPdfCommand.class,
+        Pdf4uCommand.class
 })
 public class CLIMain {
 
@@ -19,5 +20,10 @@ public class CLIMain {
     public static void main(String[] args) {
         int exitCode = new CommandLine(new CLIMain()).execute(args);
         System.exit(exitCode);
+    }
+
+    public static int runCommand(String[] args) {
+        int exitCode = new CommandLine(new CLIMain()).execute(args);
+        return exitCode;
     }
 }

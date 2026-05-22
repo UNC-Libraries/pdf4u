@@ -127,21 +127,20 @@ public class HocrToPdfService {
 
     /**
      * Convert hOCR to PDF using hocr2pdf
-     * @param options pdf4u options
-     * @param hocrFile path to a .hocr file
+     * @param hocrPath path to a .hocr file
+     * @param outputPath
+     * @param transcriptPath path to file's transcript
      * @return outputFile path to the output PDF with OCR
      */
-    public Path convertHocrToPdf(Pdf4uOptions options, Path hocrFile) throws Exception {
+    public Path convertHocrToPdf(Path inputPath, Path hocrPath, Path outputPath, Path transcriptPath) throws Exception {
         String i = "-i";
-        String inputFile = options.getInputPath().toString();
+        String inputFile = inputPath.toString();
         String o = "-o";
-        Path outputPath = options.getOutputPath();
         String outputFilename = FilenameUtils.getBaseName(inputFile);
         Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
         String r = "-r";
         String dpi = getDpi(inputFile);
-        String editedHocr = replaceHocrText(hocrFile, options.getTranscriptPath());
-
+        String editedHocr = replaceHocrText(hocrPath, transcriptPath);
 
         var command = Arrays.asList(HOCR2PDF, i, inputFile, o, outputFile.toString(), r, dpi);
         log.debug("Running hocr2pdf command: {}", String.join(" ", command));

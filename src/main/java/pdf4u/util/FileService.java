@@ -1,10 +1,12 @@
 package pdf4u.util;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -39,5 +41,15 @@ public class FileService {
         } else {
             throw new FileNotFoundException(outputPath + " does not exist.");
         }
+    }
+
+    /**
+     * Create temporary file path and delete temporary file if it already exists
+     * @return temp path for file
+     */
+    public static Path prepareTempPath(String fileName, String extension) throws Exception {
+        String baseName = FilenameUtils.getBaseName(fileName);
+        String uniqueName = baseName + "_" + UUID.randomUUID() + extension;
+        return Path.of(System.getProperty("java.io.tmpdir"), uniqueName);
     }
 }

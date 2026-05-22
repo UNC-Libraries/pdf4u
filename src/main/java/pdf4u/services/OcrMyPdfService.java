@@ -86,7 +86,7 @@ public class OcrMyPdfService {
     public Path convertImagesToPdf(Path inputPath) throws Exception {
         String inputFile = String.valueOf(inputPath);
         String output = "--output";
-        Path outputPath = prepareTempPath(inputFile, ".pdf");
+        Path outputPath = FileService.prepareTempPath(inputFile, ".pdf");
         // --first-frame-only: only let the first frame of every multi-frame input image be converted
         // into a page in the resulting PDF
         String firstFrameOnly = "--first-frame-only";
@@ -121,7 +121,7 @@ public class OcrMyPdfService {
      * @return outputPath lst file with NUL-separated list
      */
     private Path createLst(Path inputPath) throws Exception {
-        Path lstPath = prepareTempPath(inputPath.toString(), ".lst");
+        Path lstPath = FileService.prepareTempPath(inputPath.toString(), ".lst");
         try (OutputStream os = Files.newOutputStream(lstPath)) {
             // read lines and write each followed by a NUL byte
             for (String line : Files.readAllLines(inputPath, StandardCharsets.UTF_8)) {
@@ -132,16 +132,5 @@ public class OcrMyPdfService {
         }
 
         return lstPath;
-    }
-
-    /**
-     * Create temporary file path and delete temporary file if it already exists
-     * @return temp path for file
-     */
-    private Path prepareTempPath(String fileName, String extension) throws Exception {
-        Path tempPath = Files.createTempFile(FilenameUtils.getBaseName(fileName), extension);
-        // delete temporary path so that it can be written over by whatever utility has requested a path
-        Files.delete(tempPath);
-        return tempPath;
     }
 }

@@ -24,13 +24,14 @@ public class KrakenCommandIT {
     @TempDir
     public Path tmpFolder;
 
-    private KrakenService krakenService;
     private HocrToPdfService hocrToPdfService;
+    private KrakenService krakenService;
 
     @BeforeEach
     public void setup() throws Exception {
-        krakenService = new KrakenService();
         hocrToPdfService = new HocrToPdfService();
+        krakenService = new KrakenService();
+        krakenService.setHocrToPdfService(hocrToPdfService);
         System.setOut(new PrintStream(outputStreamCaptor));
     }
 
@@ -45,24 +46,37 @@ public class KrakenCommandIT {
         options.setOutputPath(tmpFolder.resolve("alt21"));
         options.setTranscriptPath(textFile);
 
-        Path testHocr = krakenService.generateHocrFromImage(options);
+        Path testHocr = krakenService.generateHocrFromImage(options.getInputPath(), options.getOutputPath());
 
         assertEquals(tmpFolder.resolve("alt21.hocr"), testHocr);
         assertTrue(Files.exists(tmpFolder.resolve("alt21.hocr")));
     }
 
     @Test
+    public void testAddOcrToMultipleImages() throws Exception {
+        Path testFile = tmpFolder.resolve("listofimages.txt");
+        Files.copy(Paths.get("src/test/resources/listofimageshandwritten.txt"), testFile);
+        Path transcriptFile = tmpFolder.resolve("listoftranscripts.txt");
+        Files.copy(Paths.get("src/test/resources/listoftranscripts.txt"), transcriptFile);
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(testFile);
+        options.setOutputPath(tmpFolder.resolve("handwritten"));
+        options.setTranscriptPath(transcriptFile);
+
+        Path testOutput = krakenService.addOcrToMultipleFiles(options);
+
+        assertTrue(Files.exists(testOutput));
+    }
+
+    @Test
     public void testConvertHocrToPdf() throws Exception {
         Path testFile = Path.of("src/test/resources/alt38.jpg");
         Path textFile = Path.of("src/test/resources/alt38.txt");
-        Pdf4uOptions options = new Pdf4uOptions();
-        options.setInputPath(testFile);
-        options.setOutputPath(tmpFolder.resolve("alt38"));
-        options.setTranscriptPath(textFile);
-        Path mockedHocr = tmpFolder.resolve("test_hocr.hocr");
+        Path outputPath = tmpFolder.resolve("alt38");
+        Path mockedHocr = tmpFolder.resolve("alt38.hocr");
         Files.copy(Paths.get("src/test/resources/alt38.hocr"), mockedHocr);
 
-        Path testOutput = hocrToPdfService.convertHocrToPdf(options, mockedHocr);
+        Path testOutput = hocrToPdfService.convertHocrToPdf(testFile, mockedHocr, outputPath, textFile);
         String testOutputText = new Tika().parseToString(testOutput);
 
         assertEquals(tmpFolder.resolve("alt38.pdf"), testOutput);
@@ -78,7 +92,7 @@ public class KrakenCommandIT {
         options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
 
         var e = assertThrows(IllegalArgumentException.class, () -> {
-            krakenService.generateHocrFromImage(options);
+            krakenService.generateHocrFromImage(options.getInputPath(), options.getOutputPath());
         });
         assertTrue(e.getMessage().contains("kraken does not accept input PDFs"));
     }
