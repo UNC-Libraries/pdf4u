@@ -3,6 +3,7 @@ package pdf4u.options;
 import picocli.CommandLine.Option;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Options for pdf4u
@@ -23,9 +24,9 @@ public class Pdf4uOptions {
             description = "Path to text file of the image's LLM generated transcript, or txt file with list of transcripts.")
     private Path transcriptPath;
 
-    @Option(names = {"-tt", "--text-type"},
-        description = "Type of text in file. Handwritten or printed text.")
-    private String textType;
+    @Option(names = {"-tt", "--text-type-list"},
+        description = "List of text types")
+    private List<String> textTypeList;
 
     public Path getInputPath() {
         return inputPath;
@@ -51,11 +52,11 @@ public class Pdf4uOptions {
         this.transcriptPath = transcriptPath;
     }
 
-    public String getTextType() {
-        return textType;
+    public List<String> getTextTypeList() {
+        return textTypeList;
     }
 
-    public void setTextType(String textType) {
-        this.textType = textType;
+    public void setTextTypeList(List<String> textTypeList) {
+        this.textTypeList = textTypeList;
     }
 }
