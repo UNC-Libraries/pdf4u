@@ -119,7 +119,7 @@ public class Pdf4uCommandIT {
         String[] args = new String[] {
                 "pdf4u",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
-                "-tt", Collections.singleton("handwritten-cursive").toString()
+                "-tt", "handwritten-cursive"
         };
 
         executeExpectSuccess(args);
@@ -132,7 +132,7 @@ public class Pdf4uCommandIT {
         String[] args = new String[] {
                 "pdf4u",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
-                "-tt", Collections.singleton("printed").toString()
+                "-tt", "printed"
         };
 
         executeExpectSuccess(args);

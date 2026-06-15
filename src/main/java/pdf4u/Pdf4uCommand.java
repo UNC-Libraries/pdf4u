@@ -24,7 +24,6 @@ public class Pdf4uCommand {
     private CLIMain parentCommand;
 
     private KrakenService krakenService = new KrakenService();
-    private HocrToPdfService hocrToPdfService = new HocrToPdfService();
     private OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
     private MultipleTextTypesService multipleTextTypesService = new MultipleTextTypesService();
 
@@ -32,7 +31,6 @@ public class Pdf4uCommand {
             description = "Perform OCR on a PDF or image. Image(s) will be converted to PDF")
     public int fileAddOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
-            multipleTextTypesService.setHocrToPdfService(hocrToPdfService);
             multipleTextTypesService.setKrakenService(krakenService);
             multipleTextTypesService.setOcrMyPdfService(ocrMyPdfService);
             multipleTextTypesService.addOcrToFile(options);
