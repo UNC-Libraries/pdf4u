@@ -6,8 +6,6 @@ import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 import pdf4u.util.FileService;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -67,8 +65,8 @@ public class KrakenService {
         String outputFilename = FilenameUtils.getBaseName(outputPath.toString());
         Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
 
-        List<Path> imagePaths = readPathList(options.getInputPath());
-        List<Path> transcriptPaths = readPathList(options.getTranscriptPath());
+        List<Path> imagePaths = FileService.readPathList(options.getInputPath());
+        List<Path> transcriptPaths = FileService.readPathList(options.getTranscriptPath());
 
         if (imagePaths.size() != transcriptPaths.size()) {
             throw new IllegalArgumentException(
@@ -137,17 +135,6 @@ public class KrakenService {
         CommandUtility.executeCommand(command);
 
         return outputFile;
-    }
-
-    private List<Path> readPathList(Path txtFile) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        for (String line : Files.readAllLines(txtFile, StandardCharsets.UTF_8)) {
-            String trimmed = line.trim();
-            if (!trimmed.isEmpty()) {
-                paths.add(Path.of(trimmed));
-            }
-        }
-        return paths;
     }
 
     public void setHocrToPdfService(HocrToPdfService hocrToPdfService) {

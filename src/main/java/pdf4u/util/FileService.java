@@ -4,8 +4,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -51,5 +55,20 @@ public class FileService {
         String baseName = FilenameUtils.getBaseName(fileName);
         String uniqueName = baseName + "_" + UUID.randomUUID() + extension;
         return Path.of(System.getProperty("java.io.tmpdir"), uniqueName);
+    }
+
+    /**
+     * Read list of paths
+     * @return list of file paths
+     */
+    public static List<Path> readPathList(Path txtFile) throws IOException {
+        List<Path> paths = new ArrayList<>();
+        for (String line : Files.readAllLines(txtFile, StandardCharsets.UTF_8)) {
+            String trimmed = line.trim();
+            if (!trimmed.isEmpty()) {
+                paths.add(Path.of(trimmed));
+            }
+        }
+        return paths;
     }
 }
