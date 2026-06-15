@@ -25,7 +25,8 @@ public class Pdf4uOptions {
     private Path transcriptPath;
 
     @Option(names = {"-tt", "--text-type-list"},
-        description = "List of text types")
+            split = ",",
+            description = "List of text types")
     private List<String> textTypeList;
 
     public Path getInputPath() {

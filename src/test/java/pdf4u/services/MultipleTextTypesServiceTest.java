@@ -75,7 +75,6 @@ class MultipleTextTypesServiceTest {
 
         service.addOcrToFile(options);
 
-        verify(krakenService).setHocrToPdfService(hocrToPdfService);
         verify(krakenService).addOcrToFile(options);
         verifyNoInteractions(ocrMyPdfService);
     }
@@ -141,7 +140,6 @@ class MultipleTextTypesServiceTest {
 
             ArgumentCaptor<Pdf4uOptions> krakenOptionsCaptor = ArgumentCaptor.forClass(Pdf4uOptions.class);
 
-            verify(krakenService).setHocrToPdfService(hocrToPdfService);
             verify(krakenService).addOcrToFile(krakenOptionsCaptor.capture());
 
             Pdf4uOptions handwrittenOptions = krakenOptionsCaptor.getValue();

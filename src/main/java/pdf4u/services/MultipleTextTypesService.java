@@ -35,13 +35,7 @@ public class MultipleTextTypesService {
         var textTypeList = options.getTextTypeList();
 
         if (textTypeList.size() == 1) {
-            if (textTypeList.getFirst().equalsIgnoreCase("printed")
-                    || textTypeList.getFirst().equalsIgnoreCase("typed")) {
-                ocrMyPdfService.addOcrToFile(options);
-            } else {
-                krakenService.setHocrToPdfService(hocrToPdfService);
-                krakenService.addOcrToFile(options);
-            }
+            addOcrToSingleFile(textTypeList.getFirst(), options);
         } else {
             addOcrToMultipleFiles(options);
         }
@@ -88,13 +82,7 @@ public class MultipleTextTypesService {
                 fileOptions.setTranscriptPath(transcriptPath);
                 fileOptions.setTextTypeList(textType);
 
-                if (textTypeList.get(i).equalsIgnoreCase("printed")
-                        || textTypeList.get(i).equalsIgnoreCase("typed")) {
-                    ocrMyPdfService.addOcrToFile(fileOptions);
-                } else {
-                    krakenService.setHocrToPdfService(hocrToPdfService);
-                    krakenService.addOcrToFile(fileOptions);
-                }
+                addOcrToSingleFile(textTypeList.get(i), fileOptions);
 
                 intermediatePdfs.add(pdfPath.toString());
             }
@@ -115,6 +103,20 @@ public class MultipleTextTypesService {
         }
 
         return outputFile;
+    }
+
+    /**
+     * Add OCR to one file
+     * Use ocrmypdf for printed text and kraken for handwritten text
+     * @param textType 
+     * @param options pdf4u options
+     */
+    private void addOcrToSingleFile(String textType, Pdf4uOptions options) throws Exception {
+        if (textType.equalsIgnoreCase("printed") || textType.equalsIgnoreCase("typed")) {
+            ocrMyPdfService.addOcrToFile(options);
+        } else {
+            krakenService.addOcrToFile(options);
+        }
     }
 
     public void setKrakenService(KrakenService krakenService) {
