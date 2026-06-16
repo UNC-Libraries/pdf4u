@@ -30,7 +30,6 @@ class MultipleTextTypesServiceTest {
     private MultipleTextTypesService service;
 
     private KrakenService krakenService;
-    private HocrToPdfService hocrToPdfService;
     private OcrMyPdfService ocrMyPdfService;
 
     @BeforeEach
@@ -38,11 +37,9 @@ class MultipleTextTypesServiceTest {
         service = new MultipleTextTypesService();
 
         krakenService = mock(KrakenService.class);
-        hocrToPdfService = mock(HocrToPdfService.class);
         ocrMyPdfService = mock(OcrMyPdfService.class);
 
         service.setKrakenService(krakenService);
-        service.setHocrToPdfService(hocrToPdfService);
         service.setOcrMyPdfService(ocrMyPdfService);
     }
 

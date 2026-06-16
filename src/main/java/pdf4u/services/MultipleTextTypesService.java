@@ -24,7 +24,6 @@ public class MultipleTextTypesService {
     private static final String PDFUNITE = "pdfunite";
 
     private KrakenService krakenService = new KrakenService();
-    private HocrToPdfService hocrToPdfService = new HocrToPdfService();
     private OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
 
     /**
@@ -121,10 +120,6 @@ public class MultipleTextTypesService {
 
     public void setKrakenService(KrakenService krakenService) {
         this.krakenService = krakenService;
-    }
-
-    public void setHocrToPdfService(HocrToPdfService hocrToPdfService) {
-        this.hocrToPdfService = hocrToPdfService;
     }
 
     public void setOcrMyPdfService(OcrMyPdfService ocrMyPdfService) {
