@@ -12,7 +12,7 @@ import picocli.CommandLine;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -118,7 +118,8 @@ public class Pdf4uCommandIT {
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
                 "pdf4u",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile, "-tt", "handwritten-cursive"
+                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
+                "-tt", "handwritten-cursive"
         };
 
         executeExpectSuccess(args);
@@ -130,7 +131,8 @@ public class Pdf4uCommandIT {
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
                 "pdf4u",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile, "-tt", "printed"
+                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
+                "-tt", "printed"
         };
 
         executeExpectSuccess(args);

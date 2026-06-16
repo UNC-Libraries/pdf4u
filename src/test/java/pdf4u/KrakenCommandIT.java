@@ -53,22 +53,6 @@ public class KrakenCommandIT {
     }
 
     @Test
-    public void testAddOcrToMultipleImages() throws Exception {
-        Path testFile = tmpFolder.resolve("listofimages.txt");
-        Files.copy(Paths.get("src/test/resources/listofimageshandwritten.txt"), testFile);
-        Path transcriptFile = tmpFolder.resolve("listoftranscripts.txt");
-        Files.copy(Paths.get("src/test/resources/listoftranscripts.txt"), transcriptFile);
-        Pdf4uOptions options = new Pdf4uOptions();
-        options.setInputPath(testFile);
-        options.setOutputPath(tmpFolder.resolve("handwritten"));
-        options.setTranscriptPath(transcriptFile);
-
-        Path testOutput = krakenService.addOcrToMultipleFiles(options);
-
-        assertTrue(Files.exists(testOutput));
-    }
-
-    @Test
     public void testConvertHocrToPdf() throws Exception {
         Path testFile = Path.of("src/test/resources/alt38.jpg");
         Path textFile = Path.of("src/test/resources/alt38.txt");

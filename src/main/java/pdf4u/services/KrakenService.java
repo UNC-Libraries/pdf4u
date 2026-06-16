@@ -6,8 +6,6 @@ import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 import pdf4u.util.FileService;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -43,8 +41,6 @@ public class KrakenService {
                 hocrToPdfService.convertHocrToPdf(options.getInputPath(), hocrFile, options.getOutputPath(),
                         options.getTranscriptPath());
                 intermediateFiles.add(hocrFile);
-            } else {
-                addOcrToMultipleFiles(options);
             }
         } finally {
             // delete intermediate files after PDF generated
@@ -52,62 +48,6 @@ public class KrakenService {
                 Files.deleteIfExists(intermediateFile);
             }
         }
-    }
-
-    /**
-     * For multiple images, convert each image into a searchable PDF then combine all PDFs
-     * @param options pdf4u options
-     * @return outputFile path to the combined output PDF
-     */
-    public Path addOcrToMultipleFiles(Pdf4uOptions options) throws Exception {
-        List<Path> intermediateFiles = new ArrayList<>();
-        List<String> intermediatePdfs = new ArrayList<>();
-
-        Path outputPath = options.getOutputPath();
-        String outputFilename = FilenameUtils.getBaseName(outputPath.toString());
-        Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
-
-        List<Path> imagePaths = readPathList(options.getInputPath());
-        List<Path> transcriptPaths = readPathList(options.getTranscriptPath());
-
-        if (imagePaths.size() != transcriptPaths.size()) {
-            throw new IllegalArgumentException(
-                    "Image list and transcript list must have the same number of entries. " +
-                            "Images = " + imagePaths.size() + ", transcripts = " + transcriptPaths.size());
-        }
-
-        try {
-            for (int i = 0; i < imagePaths.size(); i++) {
-                Path imagePath = imagePaths.get(i);
-                Path transcriptPath = transcriptPaths.get(i);
-                Path pdfPath = FileService.prepareTempPath(imagePath.toString(), "");
-
-                Path hocrOutput = FileService.prepareTempPath(imagePath.toString(), "");
-                Path hocrFile = generateHocrFromImage(imagePath, hocrOutput);
-                Path individualPdf = hocrToPdfService.convertHocrToPdf(imagePath, hocrFile, pdfPath, transcriptPath);
-                intermediatePdfs.add(individualPdf.toString());
-                intermediateFiles.add(hocrFile);
-            }
-
-            List<String> command = new ArrayList<>();
-            command.add(PDFUNITE);
-            command.addAll(intermediatePdfs);
-            command.add(outputFile.toString());
-
-            log.debug("Combining intermediate PDFs: {}", String.join(" ", command));
-            CommandUtility.executeCommand(command);
-
-        } finally {
-            // delete intermediate files after combined PDF generated
-            for (Path intermediateFile : intermediateFiles) {
-                Files.deleteIfExists(intermediateFile);
-            }
-            for (String intermediatePdf : intermediatePdfs) {
-                Files.deleteIfExists(Path.of(intermediatePdf));
-            }
-        }
-
-        return outputFile;
     }
 
     /**
@@ -137,17 +77,6 @@ public class KrakenService {
         CommandUtility.executeCommand(command);
 
         return outputFile;
-    }
-
-    private List<Path> readPathList(Path txtFile) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        for (String line : Files.readAllLines(txtFile, StandardCharsets.UTF_8)) {
-            String trimmed = line.trim();
-            if (!trimmed.isEmpty()) {
-                paths.add(Path.of(trimmed));
-            }
-        }
-        return paths;
     }
 
     public void setHocrToPdfService(HocrToPdfService hocrToPdfService) {
