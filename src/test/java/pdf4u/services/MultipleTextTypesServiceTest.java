@@ -338,6 +338,7 @@ class MultipleTextTypesServiceTest {
     @Test
     public void addOcrToMultipleFilesNoTextTextTypeTest() throws Exception {
         Path inputListPath = tempDir.resolve("images.txt");
+        Path transcriptListPath = tempDir.resolve("transcripts.txt");
         Path outputPath = tempDir.resolve("combined-output");
 
         Path image1 = tempDir.resolve("image1.tif");
@@ -349,6 +350,7 @@ class MultipleTextTypesServiceTest {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(inputListPath);
         options.setOutputPath(outputPath);
+        options.setTranscriptPath(transcriptListPath);
         options.setTextTypeList(List.of("no text"));
 
         try (
@@ -359,11 +361,11 @@ class MultipleTextTypesServiceTest {
                             FileService.buildOutputFile(outputPath, "combined-output", ".pdf"))
                     .thenReturn(outputFile);
 
-            fileServiceMock.when(() -> FileService.readPathList(inputListPath))
-                    .thenReturn(List.of(image1));
+            fileServiceMock.when(() -> FileService.readPathList(inputListPath)).thenReturn(List.of(image1));
 
-            fileServiceMock.when(() ->
-                            FileService.prepareTempPath(image1.toString(), ".pdf"))
+            fileServiceMock.when(() -> FileService.readPathList(transcriptListPath)).thenReturn(List.of("null"));
+
+            fileServiceMock.when(() -> FileService.prepareTempPath(image1.toString(), ".pdf"))
                     .thenReturn(intermediatePdf1);
 
             fileServiceMock.when(() ->

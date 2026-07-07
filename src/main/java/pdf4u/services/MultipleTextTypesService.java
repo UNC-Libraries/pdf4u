@@ -58,13 +58,11 @@ public class MultipleTextTypesService {
         List<String> textTypeList = options.getTextTypeList();
 
         // check that list of text types, images, and transcripts have the same number of entries
-        if (!textTypeList.contains("no text")) {
-            if (textTypeList.size() != imagePaths.size() || imagePaths.size() != transcriptPaths.size()) {
-                throw new IllegalArgumentException(
-                        "Text type list, image list, and transcript list must have the same number of entries. "
-                                + "Text types = " + textTypeList.size() + ", images = " + imagePaths.size()
-                                + ", transcripts = " + transcriptPaths.size());
-            }
+        if (textTypeList.size() != imagePaths.size() || imagePaths.size() != transcriptPaths.size()) {
+            throw new IllegalArgumentException(
+                    "Text type list, image list, and transcript list must have the same number of entries. "
+                            + "Text types = " + textTypeList.size() + ", images = " + imagePaths.size()
+                            + ", transcripts = " + transcriptPaths.size());
         }
 
         // for each file in the list, determine the text type then convert the file using OcrMyPdf or Kraken
@@ -85,7 +83,7 @@ public class MultipleTextTypesService {
                 fileOptions.setTextTypeList(textType);
 
                 // set transcript path if text type is not no text
-                if (!textTypeList.contains("no text")) {
+                if (!textTypeList.contains("no text") && transcriptPaths.get(i) != null) {
                     fileOptions.setTranscriptPath(transcriptPaths.get(i));
                 }
 
