@@ -9,6 +9,7 @@ import pdf4u.util.FileService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MultipleTextTypesService {
     private static final Logger log = getLogger(MultipleTextTypesService.class);
 
+    private static final String IMG2PDF = "img2pdf";
     private static final String PDFUNITE = "pdfunite";
 
     private KrakenService krakenService = new KrakenService();
@@ -56,30 +58,36 @@ public class MultipleTextTypesService {
         List<String> textTypeList = options.getTextTypeList();
 
         // check that list of text types, images, and transcripts have the same number of entries
-        if (textTypeList.size() != imagePaths.size() || imagePaths.size() != transcriptPaths.size()) {
-            throw new IllegalArgumentException(
-                    "Text type list, image list, and transcript list must have the same number of entries. "
-                            + "Text types = " + textTypeList.size() + ", images = " + imagePaths.size()
-                            + ", transcripts = " + transcriptPaths.size());
+        if (!textTypeList.contains("no text")) {
+            if (textTypeList.size() != imagePaths.size() || imagePaths.size() != transcriptPaths.size()) {
+                throw new IllegalArgumentException(
+                        "Text type list, image list, and transcript list must have the same number of entries. "
+                                + "Text types = " + textTypeList.size() + ", images = " + imagePaths.size()
+                                + ", transcripts = " + transcriptPaths.size());
+            }
         }
 
         // for each file in the list, determine the text type then convert the file using OcrMyPdf or Kraken
         // add each file to the list of intermediate PDFs then combine all intermediate PDFs using pdfunite
-        // text types: printed, typed, handwritten printed, handwritten cursive, mixed
+        // text types: printed, typed, handwritten printed, handwritten cursive, mixed, no text
         // if printed/typed text, use ocrmypdf to perform OCR
         // if handwritten/mixed, use kraken and transcript
+        // if no text, use img2pdf to create PDF without OCR
         try {
             for (int i = 0; i < imagePaths.size(); i++) {
                 List<String> textType = Collections.singletonList(textTypeList.get(i));
                 Path imagePath = imagePaths.get(i);
-                Path transcriptPath = transcriptPaths.get(i);
                 Path pdfPath = FileService.prepareTempPath(imagePath.toString(), ".pdf");
 
                 Pdf4uOptions fileOptions = new Pdf4uOptions();
                 fileOptions.setInputPath(imagePath);
                 fileOptions.setOutputPath(pdfPath);
-                fileOptions.setTranscriptPath(transcriptPath);
                 fileOptions.setTextTypeList(textType);
+
+                // set transcript path if text type is not no text
+                if (!textTypeList.contains("no text")) {
+                    fileOptions.setTranscriptPath(transcriptPaths.get(i));
+                }
 
                 addOcrToSingleFile(textTypeList.get(i), fileOptions);
 
@@ -106,16 +114,39 @@ public class MultipleTextTypesService {
 
     /**
      * Add OCR to one file
-     * Use ocrmypdf for printed text and kraken for handwritten text
+     * Use ocrmypdf for printed text, kraken for handwritten text, and img2pdf for no text
      * @param textType 
      * @param options pdf4u options
      */
     private void addOcrToSingleFile(String textType, Pdf4uOptions options) throws Exception {
-        if (textType.equalsIgnoreCase("printed") || textType.equalsIgnoreCase("typed")) {
+        if (textType.equalsIgnoreCase("no text")) {
+            createPdfWithoutOcr(options);
+        } else if (textType.equalsIgnoreCase("printed") || textType.equalsIgnoreCase("typed")) {
             ocrMyPdfService.addOcrToFile(options);
         } else {
             krakenService.addOcrToFile(options);
         }
+    }
+
+    /**
+     * Create PDF without OCR for images without text type
+     * Use img2pdf
+     * @param options pdf4u options
+     */
+    private void createPdfWithoutOcr(Pdf4uOptions options) throws Exception {
+        String inputFile = String.valueOf(options.getInputPath());
+        String output = "--output";
+        Path outputPath = options.getOutputPath();
+        String outputFilename = FilenameUtils.getBaseName(inputFile);
+        Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
+        // --first-frame-only: only let the first frame of every multi-frame input image be converted
+        // into a page in the resulting PDF
+        String firstFrameOnly = "--first-frame-only";
+
+        var command = Arrays.asList(IMG2PDF, inputFile, output, outputFile.toString(), firstFrameOnly);
+
+        log.debug("Running img2pdf command to generate PDF without OCR: {}", String.join(" ", command));
+        CommandUtility.executeCommand(command);
     }
 
     public void setKrakenService(KrakenService krakenService) {

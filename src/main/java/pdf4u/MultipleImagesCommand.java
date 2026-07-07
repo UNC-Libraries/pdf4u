@@ -2,7 +2,6 @@ package pdf4u;
 
 import org.slf4j.Logger;
 import pdf4u.options.Pdf4uOptions;
-import pdf4u.services.HocrToPdfService;
 import pdf4u.services.KrakenService;
 import pdf4u.services.MultipleTextTypesService;
 import pdf4u.services.OcrMyPdfService;
@@ -16,10 +15,10 @@ import static pdf4u.util.CLIConstants.outputLogger;
 /**
  * @author krwong
  */
-@Command(name = "pdf4u",
-        description = "pdf4u commands to add OCR to documents")
-public class Pdf4uCommand {
-    private static final Logger log = getLogger(Pdf4uCommand.class);
+@Command(name = "multiple_images",
+        description = "pdf4u commands to add OCR to documents with multiple text types")
+public class MultipleImagesCommand {
+    private static final Logger log = getLogger(MultipleImagesCommand.class);
     @ParentCommand
     private CLIMain parentCommand;
 

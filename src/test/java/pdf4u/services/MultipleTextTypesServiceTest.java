@@ -33,7 +33,7 @@ class MultipleTextTypesServiceTest {
     private OcrMyPdfService ocrMyPdfService;
 
     @BeforeEach
-    void setUp() {
+    public void setup() {
         service = new MultipleTextTypesService();
 
         krakenService = mock(KrakenService.class);
@@ -44,7 +44,7 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToFileWithSinglePrintedTextType() throws Exception {
+    public void addOcrToFileWithSinglePrintedTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("printed"));
 
@@ -55,7 +55,7 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToFileWithSingleTypedTextType() throws Exception {
+    public void addOcrToFileWithSingleTypedTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("typed"));
 
@@ -66,7 +66,7 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToFileWithSingleHandwrittenTextType() throws Exception {
+    public void addOcrToFileWithSingleHandwrittenTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("handwritten"));
 
@@ -77,7 +77,31 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToMultipleFilesWithMixedTextTypesSuccessTest() throws Exception {
+    public void addOcrToFileWithNoTextTextType() throws Exception {
+        Path inputPath = Path.of("src/test/resources/dog-wikipedia.png");
+        Path outputPath = tempDir.resolve("dog-wikipedia");
+        Path outputFile = tempDir.resolve("dog-wikipedia.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setTextTypeList(List.of("no text"));
+        options.setInputPath(inputPath);
+        options.setOutputPath(outputPath);
+
+        try (MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)) {
+            service.addOcrToFile(options);
+
+            verifyNoInteractions(krakenService);
+            verifyNoInteractions(ocrMyPdfService);
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "img2pdf", inputPath.toString(), "--output", outputFile.toString(), "--first-frame-only"
+                    ))
+            );
+        }
+    }
+
+    @Test
+    public void addOcrToMultipleFilesWithMixedTextTypesSuccessTest() throws Exception {
         Path inputListPath = tempDir.resolve("images.txt");
         Path transcriptListPath = tempDir.resolve("transcripts.txt");
         Path outputPath = tempDir.resolve("combined-output");
@@ -159,7 +183,7 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToMultipleFilesDifferentCountsTest() throws Exception {
+    public void addOcrToMultipleFilesDifferentCountsTest() throws Exception {
         Path inputListPath = tempDir.resolve("images.txt");
         Path transcriptListPath = tempDir.resolve("transcripts.txt");
         Path outputPath = tempDir.resolve("combined-output");
@@ -209,7 +233,7 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToMultipleFilesDeletesIntermediatePdfsEvenWhenPdfUniteFails() throws Exception {
+    public void addOcrToMultipleFilesDeletesIntermediatePdfsEvenWhenPdfUniteFails() throws Exception {
         Path inputListPath = tempDir.resolve("images.txt");
         Path transcriptListPath = tempDir.resolve("transcripts.txt");
         Path outputPath = tempDir.resolve("combined-output");
@@ -262,7 +286,7 @@ class MultipleTextTypesServiceTest {
     }
 
     @Test
-    void addOcrToMultipleFilesPrintedTextTypeIsDifferentCaseTest() throws Exception {
+    public void addOcrToMultipleFilesPrintedTextTypeIsDifferentCaseTest() throws Exception {
         Path inputListPath = tempDir.resolve("images.txt");
         Path transcriptListPath = tempDir.resolve("transcripts.txt");
         Path outputPath = tempDir.resolve("combined-output");
@@ -308,6 +332,68 @@ class MultipleTextTypesServiceTest {
                     outputFile.toString()
                 ))
             );
+        }
+    }
+
+    @Test
+    public void addOcrToMultipleFilesNoTextTextTypeTest() throws Exception {
+        Path inputListPath = tempDir.resolve("images.txt");
+        Path outputPath = tempDir.resolve("combined-output");
+
+        Path image1 = tempDir.resolve("image1.tif");
+        Path intermediatePdf1 = tempDir.resolve("image1.pdf");
+        Path outputFile = tempDir.resolve("combined-output.pdf");
+
+        Files.createFile(intermediatePdf1);
+
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(inputListPath);
+        options.setOutputPath(outputPath);
+        options.setTextTypeList(List.of("no text"));
+
+        try (
+                MockedStatic<FileService> fileServiceMock = mockStatic(FileService.class);
+                MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)
+        ) {
+            fileServiceMock.when(() ->
+                            FileService.buildOutputFile(outputPath, "combined-output", ".pdf"))
+                    .thenReturn(outputFile);
+
+            fileServiceMock.when(() -> FileService.readPathList(inputListPath))
+                    .thenReturn(List.of(image1));
+
+            fileServiceMock.when(() ->
+                            FileService.prepareTempPath(image1.toString(), ".pdf"))
+                    .thenReturn(intermediatePdf1);
+
+            fileServiceMock.when(() ->
+                            FileService.buildOutputFile(intermediatePdf1, "image1", ".pdf"))
+                    .thenReturn(intermediatePdf1);
+
+            service.addOcrToMultipleFiles(options);
+
+            verifyNoInteractions(krakenService);
+            verifyNoInteractions(ocrMyPdfService);
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "img2pdf",
+                            image1.toString(),
+                            "--output",
+                            intermediatePdf1.toString(),
+                            "--first-frame-only"
+                    ))
+            );
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "pdfunite",
+                            intermediatePdf1.toString(),
+                            outputFile.toString()
+                    ))
+            );
+
+            assertFalse(Files.exists(intermediatePdf1));
         }
     }
 }

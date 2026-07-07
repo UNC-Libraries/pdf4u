@@ -6,13 +6,13 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import pdf4u.services.HocrToPdfService;
 import pdf4u.services.KrakenService;
+import pdf4u.services.MultipleTextTypesService;
 import pdf4u.services.OcrMyPdfService;
 import picocli.CommandLine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -28,6 +28,7 @@ public class Pdf4uCommandIT {
 
     private HocrToPdfService hocrToPdfService;
     private KrakenService krakenService;
+    private MultipleTextTypesService multipleTextTypesService;
     private OcrMyPdfService ocrMyPdfService;
 
     @TempDir
@@ -42,6 +43,9 @@ public class Pdf4uCommandIT {
         krakenService = new KrakenService();
         krakenService.setHocrToPdfService(hocrToPdfService);
         ocrMyPdfService = new OcrMyPdfService();
+        multipleTextTypesService = new MultipleTextTypesService();
+        multipleTextTypesService.setKrakenService(krakenService);
+        multipleTextTypesService.setOcrMyPdfService(ocrMyPdfService);
     }
 
     @Test
@@ -113,11 +117,11 @@ public class Pdf4uCommandIT {
     }
 
     @Test
-    public void testPdf4uTextTypeHandwritten() throws Exception {
+    public void testMultipleImagesTextTypeHandwritten() throws Exception {
         String testFile = "src/test/resources/alt21.jpg";
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
-                "pdf4u",
+                "multiple_images",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
                 "-tt", "handwritten-cursive"
         };
@@ -126,13 +130,25 @@ public class Pdf4uCommandIT {
     }
 
     @Test
-    public void testPdf4uTextTypePrinted() throws Exception {
+    public void testMultipleImagesTextTypePrinted() throws Exception {
         String testFile = "src/test/resources/alt21.jpg";
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
-                "pdf4u",
+                "multiple_images",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
                 "-tt", "printed"
+        };
+
+        executeExpectSuccess(args);
+    }
+
+    @Test
+    public void testMultipleImagesTextTypeNoText() throws Exception {
+        String testFile = "src/test/resources/alt21.jpg";
+        String[] args = new String[] {
+                "multiple_images",
+                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(),
+                "-tt", "no text"
         };
 
         executeExpectSuccess(args);
