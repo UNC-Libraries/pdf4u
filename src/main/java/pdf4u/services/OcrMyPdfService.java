@@ -43,9 +43,7 @@ public class OcrMyPdfService {
         }
 
         try {
-            Path outputPath = options.getOutputPath();
-            String outputFilename = FilenameUtils.getBaseName(inputFile);
-            Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
+            Path outputFile = options.getOutputPath();
 
             var command = Arrays.asList(OCRMYPDF, inputFile, outputFile.toString());
 
@@ -66,9 +64,7 @@ public class OcrMyPdfService {
      */
     public Path redoPdfExistingOcr(Pdf4uOptions options) throws Exception {
         String inputFile = String.valueOf(options.getInputPath());
-        Path outputPath = options.getOutputPath();
-        String outputFilename = FilenameUtils.getBaseName(inputFile);
-        Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
+        Path outputFile = options.getOutputPath();
 
         var command = Arrays.asList(OCRMYPDF, REDO_OCR, inputFile, outputFile.toString());
         log.debug("Running ocrmypdf command: {}", String.join(" ", command));

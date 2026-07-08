@@ -1,6 +1,5 @@
 package pdf4u.services;
 
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
@@ -48,20 +47,32 @@ public class MultipleTextTypesService {
      * @return outputFile path to the combined output PDF
      */
     public Path addOcrToMultipleFiles(Pdf4uOptions options) throws Exception {
-        Path outputPath = options.getOutputPath();
-        String outputFilename = FilenameUtils.getBaseName(outputPath.toString());
-        Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
+        Path outputFile = options.getOutputPath();
 
         List<String> intermediatePdfs = new ArrayList<>();
         List<Path> imagePaths = FileService.readPathList(options.getInputPath());
-        List<Path> transcriptPaths = FileService.readPathList(options.getTranscriptPath());
         List<String> textTypeList = options.getTextTypeList();
 
-        // check that list of text types, images, and transcripts have the same number of entries
-        if (textTypeList.size() != imagePaths.size() || imagePaths.size() != transcriptPaths.size()) {
+        boolean needsAnyTranscripts = textTypeList.stream()
+                .anyMatch(this::needsTranscript);
+
+        List<Path> transcriptPaths = needsAnyTranscripts
+                ? FileService.readPathList(options.getTranscriptPath())
+                : Collections.emptyList();
+
+        // check that list of text types and images have the same number of entries
+        if (textTypeList.size() != imagePaths.size()) {
             throw new IllegalArgumentException(
-                    "Text type list, image list, and transcript list must have the same number of entries. "
-                            + "Text types = " + textTypeList.size() + ", images = " + imagePaths.size()
+                    "Text type list and image list must have the same number of entries. "
+                            + "Text types = " + textTypeList.size()
+                            + ", images = " + imagePaths.size());
+        }
+
+        // if transcripts needed, check that list of images and transcripts have the same number of entries
+        if (needsAnyTranscripts && imagePaths.size() != transcriptPaths.size()) {
+            throw new IllegalArgumentException(
+                    "Image list and transcript list must have the same number of entries when transcripts are needed. "
+                            + "Images = " + imagePaths.size()
                             + ", transcripts = " + transcriptPaths.size());
         }
 
@@ -82,8 +93,8 @@ public class MultipleTextTypesService {
                 fileOptions.setOutputPath(pdfPath);
                 fileOptions.setTextTypeList(textType);
 
-                // set transcript path if text type is not no text
-                if (!textTypeList.contains("no text") && transcriptPaths.get(i) != null) {
+                // set transcript path if text type is not no text, typed, or printed
+                if (needsTranscript(textTypeList.get(i))) {
                     fileOptions.setTranscriptPath(transcriptPaths.get(i));
                 }
 
@@ -99,7 +110,6 @@ public class MultipleTextTypesService {
 
             log.debug("Combining intermediate PDFs: {}", String.join(" ", command));
             CommandUtility.executeCommand(command);
-
         } finally {
             // delete intermediate files after combined PDF generated
             for (String intermediatePdf : intermediatePdfs) {
@@ -134,18 +144,23 @@ public class MultipleTextTypesService {
     private void createPdfWithoutOcr(Pdf4uOptions options) throws Exception {
         String inputFile = String.valueOf(options.getInputPath());
         String output = "--output";
-        Path outputPath = options.getOutputPath();
-        String outputFilename = FilenameUtils.getBaseName(inputFile);
-        Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
+        String outputFile = String.valueOf(options.getOutputPath());
         // --first-frame-only: only let the first frame of every multi-frame input image be converted
         // into a page in the resulting PDF
         String firstFrameOnly = "--first-frame-only";
 
-        var command = Arrays.asList(IMG2PDF, inputFile, output, outputFile.toString(), firstFrameOnly);
+        var command = Arrays.asList(IMG2PDF, inputFile, output, outputFile, firstFrameOnly);
 
         log.debug("Running img2pdf command to generate PDF without OCR: {}", String.join(" ", command));
         CommandUtility.executeCommand(command);
     }
+
+    private boolean needsTranscript(String textType) {
+        return !textType.equalsIgnoreCase("no text")
+                && !textType.equalsIgnoreCase("typed")
+                && !textType.equalsIgnoreCase("printed");
+    }
+
 
     public void setKrakenService(KrakenService krakenService) {
         this.krakenService = krakenService;

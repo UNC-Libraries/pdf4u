@@ -57,7 +57,7 @@ public class OcrMyPdfServiceTest {
             Path mockedOutput = tmpFolder.resolve("test_output.pdf");
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
-            options.setOutputPath(tmpFolder.resolve("test_output"));
+            options.setOutputPath(mockedOutput);
             mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
                     .thenReturn(mockedOutput.toString());
 
@@ -81,7 +81,7 @@ public class OcrMyPdfServiceTest {
             Path mockedOutput = tmpFolder.resolve("test_output.pdf");
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
-            options.setOutputPath(tmpFolder.resolve("test_output"));
+            options.setOutputPath(mockedOutput);
             mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
                     .thenReturn(mockedOutput.toString());
 
@@ -101,7 +101,7 @@ public class OcrMyPdfServiceTest {
             Path mockedOutput = tmpFolder.resolve("test_output.pdf");
             Pdf4uOptions options = new Pdf4uOptions();
             options.setInputPath(mockedInput);
-            options.setOutputPath(tmpFolder.resolve("test_output"));
+            options.setOutputPath(mockedOutput);
             mockedStatic.when(() -> CommandUtility.executeCommand(anyList()))
                     .thenReturn(mockedOutput.toString());
 
@@ -144,7 +144,7 @@ public class OcrMyPdfServiceTest {
         Path testFile = Path.of("src/test/resources/Cat-Wikipedia.pdf");
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(testFile);
-        options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia"));
+        options.setOutputPath(tmpFolder.resolve("Cat-Wikipedia.pdf"));
 
         var e = assertThrows(CommandException.class, () -> {
             ocrMyPdfService.addOcrToFile(options);
