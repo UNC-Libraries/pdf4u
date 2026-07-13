@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -30,17 +31,14 @@ public class MultipleTextTypesServiceTest {
     private MultipleTextTypesService service;
 
     private KrakenService krakenService;
-    private OcrMyPdfService ocrMyPdfService;
 
     @BeforeEach
     public void setup() {
         service = new MultipleTextTypesService();
 
         krakenService = mock(KrakenService.class);
-        ocrMyPdfService = mock(OcrMyPdfService.class);
 
         service.setKrakenService(krakenService);
-        service.setOcrMyPdfService(ocrMyPdfService);
     }
 
     @Test
@@ -50,8 +48,7 @@ public class MultipleTextTypesServiceTest {
 
         service.addOcrToFile(options);
 
-        verify(ocrMyPdfService).addOcrToFile(options);
-        verifyNoInteractions(krakenService);
+        verify(krakenService).addOcrToFile(options);
     }
 
     @Test
@@ -61,8 +58,7 @@ public class MultipleTextTypesServiceTest {
 
         service.addOcrToFile(options);
 
-        verify(ocrMyPdfService).addOcrToFile(options);
-        verifyNoInteractions(krakenService);
+        verify(krakenService).addOcrToFile(options);
     }
 
     @Test
@@ -73,7 +69,6 @@ public class MultipleTextTypesServiceTest {
         service.addOcrToFile(options);
 
         verify(krakenService).addOcrToFile(options);
-        verifyNoInteractions(ocrMyPdfService);
     }
 
     @Test
@@ -89,7 +84,6 @@ public class MultipleTextTypesServiceTest {
             service.addOcrToFile(options);
 
             verifyNoInteractions(krakenService);
-            verifyNoInteractions(ocrMyPdfService);
 
             commandUtilityMock.verify(() ->
                     CommandUtility.executeCommand(List.of(
@@ -108,6 +102,7 @@ public class MultipleTextTypesServiceTest {
         Path image1 = tempDir.resolve("image1.tif");
         Path image2 = tempDir.resolve("image2.tif");
 
+        Path transcript1 = tempDir.resolve("transcript1.txt");
         Path transcript2 = tempDir.resolve("transcript2.txt");
 
         Path intermediatePdf1 = tempDir.resolve("image1.pdf");
@@ -131,7 +126,7 @@ public class MultipleTextTypesServiceTest {
             fileServiceMock.when(() -> FileService.readPathList(inputListPath)).thenReturn(List.of(image1, image2));
 
             fileServiceMock.when(() ->
-                FileService.readPathList(transcriptListPath)).thenReturn(List.of("no transcript", transcript2));
+                FileService.readPathList(transcriptListPath)).thenReturn(List.of(transcript1, transcript2));
 
             fileServiceMock.when(() -> FileService.prepareTempPath(image1.toString(), ".pdf"))
                 .thenReturn(intermediatePdf1);
@@ -143,21 +138,18 @@ public class MultipleTextTypesServiceTest {
 
             assertEquals(outputFile, result);
 
-            ArgumentCaptor<Pdf4uOptions> ocrOptionsCaptor = ArgumentCaptor.forClass(Pdf4uOptions.class);
+            ArgumentCaptor<Pdf4uOptions> krakenOptionsCaptor = ArgumentCaptor.forClass(Pdf4uOptions.class);
+            verify(krakenService, times(2)).addOcrToFile(krakenOptionsCaptor.capture());
 
-            verify(ocrMyPdfService).addOcrToFile(ocrOptionsCaptor.capture());
+            List<Pdf4uOptions> capturedOptions = krakenOptionsCaptor.getAllValues();
 
-            Pdf4uOptions printedOptions = ocrOptionsCaptor.getValue();
+            Pdf4uOptions printedOptions = capturedOptions.get(0);
             assertEquals(image1, printedOptions.getInputPath());
             assertEquals(intermediatePdf1, printedOptions.getOutputPath());
-            assertEquals(null, printedOptions.getTranscriptPath());
+            assertEquals(transcript1, printedOptions.getTranscriptPath());
             assertEquals(List.of("printed"), printedOptions.getTextTypeList());
 
-            ArgumentCaptor<Pdf4uOptions> krakenOptionsCaptor = ArgumentCaptor.forClass(Pdf4uOptions.class);
-
-            verify(krakenService).addOcrToFile(krakenOptionsCaptor.capture());
-
-            Pdf4uOptions handwrittenOptions = krakenOptionsCaptor.getValue();
+            Pdf4uOptions handwrittenOptions = capturedOptions.get(1);
             assertEquals(image2, handwrittenOptions.getInputPath());
             assertEquals(intermediatePdf2, handwrittenOptions.getOutputPath());
             assertEquals(transcript2, handwrittenOptions.getTranscriptPath());
@@ -213,7 +205,6 @@ public class MultipleTextTypesServiceTest {
                 exception.getMessage()
             );
 
-            verifyNoInteractions(ocrMyPdfService);
             verifyNoInteractions(krakenService);
 
             fileServiceMock.verify(() -> FileService.prepareTempPath(any(String.class), any(String.class)), never());
@@ -265,7 +256,7 @@ public class MultipleTextTypesServiceTest {
 
             assertEquals("pdfunite failed", exception.getMessage());
 
-            verify(ocrMyPdfService).addOcrToFile(any(Pdf4uOptions.class));
+            verify(krakenService).addOcrToFile(any(Pdf4uOptions.class));
 
             assertFalse(Files.exists(intermediatePdf1));
         }
@@ -304,8 +295,7 @@ public class MultipleTextTypesServiceTest {
 
             service.addOcrToMultipleFiles(options);
 
-            verify(ocrMyPdfService).addOcrToFile(any(Pdf4uOptions.class));
-            verifyNoInteractions(krakenService);
+            verify(krakenService).addOcrToFile(any(Pdf4uOptions.class));
 
             commandUtilityMock.verify(() ->
                 CommandUtility.executeCommand(List.of(
@@ -349,7 +339,6 @@ public class MultipleTextTypesServiceTest {
             service.addOcrToMultipleFiles(options);
 
             verifyNoInteractions(krakenService);
-            verifyNoInteractions(ocrMyPdfService);
 
             commandUtilityMock.verify(() ->
                     CommandUtility.executeCommand(List.of(

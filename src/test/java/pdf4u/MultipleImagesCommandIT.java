@@ -38,21 +38,20 @@ public class MultipleImagesCommandIT {
         ocrMyPdfService = new OcrMyPdfService();
         multipleTextTypesService = new MultipleTextTypesService();
         multipleTextTypesService.setKrakenService(krakenService);
-        multipleTextTypesService.setOcrMyPdfService(ocrMyPdfService);
         System.setOut(new PrintStream(outputStreamCaptor));
     }
 
     @Test
     public void testAddOcrToFilePrintedTextTypeSuccess() throws Exception {
         Path inputPath = Path.of("src/test/resources/alt21.jpg");
-        Path outputPath = tmpFolder.resolve("dog-wikipedia.pdf");
+        Path outputPath = tmpFolder.resolve("alt21.pdf");
         Path transcriptPath = Path.of("src/test/resources/alt21.txt");
 
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
         options.setTranscriptPath(transcriptPath);
-        options.setTextTypeList(List.of("no text"));
+        options.setTextTypeList(List.of("printed"));
 
         multipleTextTypesService.addOcrToFile(options);
 
@@ -62,14 +61,14 @@ public class MultipleImagesCommandIT {
     @Test
     public void testAddOcrToFileHandwrittenTextTypeSuccess() throws Exception {
         Path inputPath = Path.of("src/test/resources/alt21.jpg");
-        Path outputPath = tmpFolder.resolve("dog-wikipedia.pdf");
+        Path outputPath = tmpFolder.resolve("alt21.pdf");
         Path transcriptPath = Path.of("src/test/resources/alt21.txt");
 
         Pdf4uOptions options = new Pdf4uOptions();
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
         options.setTranscriptPath(transcriptPath);
-        options.setTextTypeList(List.of("no text"));
+        options.setTextTypeList(List.of("handwritten print"));
 
         multipleTextTypesService.addOcrToFile(options);
 
@@ -92,27 +91,7 @@ public class MultipleImagesCommandIT {
     }
 
     @Test
-    public void testAddOcrToMultipleFilesPrintedTextTypeSuccess() throws Exception {
-        Path inputPath = Path.of("src/test/resources/listofimages.txt");
-        Path outputPath = tmpFolder.resolve("multipleimages.pdf");
-        Path transcriptPath = tmpFolder.resolve("transcript.txt");
-        List<String> lines =
-                Arrays.asList("no transcript", "no transcript", "no transcript", "no transcript", "no transcript");
-        Files.write(transcriptPath, lines, StandardCharsets.UTF_8);
-
-        Pdf4uOptions options = new Pdf4uOptions();
-        options.setInputPath(inputPath);
-        options.setOutputPath(outputPath);
-        options.setTranscriptPath(transcriptPath);
-        options.setTextTypeList(List.of("printed", "typed", "printed", "typed", "printed"));
-
-        multipleTextTypesService.addOcrToMultipleFiles(options);
-
-        assertTrue(Files.exists(outputPath));
-    }
-
-    @Test
-    public void testAddOcrToMultipleFilesHandwrittenTextTypeSuccess() throws Exception {
+    public void testAddOcrToMultipleFilesPrintedMixedTypeSuccess() throws Exception {
         Path inputPath = Path.of("src/test/resources/listofimageshandwritten.txt");
         Path transcriptPath = Path.of("src/test/resources/listoftranscripts.txt");
         Path outputPath = tmpFolder.resolve("handwrittenimages.pdf");
@@ -121,7 +100,7 @@ public class MultipleImagesCommandIT {
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
         options.setTranscriptPath(transcriptPath);
-        options.setTextTypeList(List.of("handwritten print", "mixed"));
+        options.setTextTypeList(List.of("printed", "mixed"));
 
         multipleTextTypesService.addOcrToMultipleFiles(options);
 

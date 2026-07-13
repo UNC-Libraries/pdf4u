@@ -31,7 +31,6 @@ public class MultipleImagesCommand {
     public int fileAddOcr(@Mixin Pdf4uOptions options) throws Exception {
         try {
             multipleTextTypesService.setKrakenService(krakenService);
-            multipleTextTypesService.setOcrMyPdfService(ocrMyPdfService);
             multipleTextTypesService.addOcrToFile(options);
             return 0;
         } catch (Exception e) {

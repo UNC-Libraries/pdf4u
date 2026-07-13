@@ -25,7 +25,6 @@ public class MultipleTextTypesService {
     private static final String PDFUNITE = "pdfunite";
 
     private KrakenService krakenService = new KrakenService();
-    private OcrMyPdfService ocrMyPdfService = new OcrMyPdfService();
 
     /**
      * For lists of images with different text types, convert each image into a searchable PDF then combine all PDFs
@@ -79,8 +78,7 @@ public class MultipleTextTypesService {
         // for each file in the list, determine the text type then convert the file using OcrMyPdf or Kraken
         // add each file to the list of intermediate PDFs then combine all intermediate PDFs using pdfunite
         // text types: printed, typed, handwritten printed, handwritten cursive, mixed, no text
-        // if printed/typed text, use ocrmypdf to perform OCR
-        // if handwritten/mixed, use kraken and transcript
+        // if printed/typed/handwritten/mixed, use kraken and transcript
         // if no text, use img2pdf to create PDF without OCR
         try {
             for (int i = 0; i < imagePaths.size(); i++) {
@@ -122,15 +120,13 @@ public class MultipleTextTypesService {
 
     /**
      * Add OCR to one file
-     * Use ocrmypdf for printed text, kraken for handwritten text, and img2pdf for no text
+     * Use kraken for printed/handwritten text, and img2pdf for no text
      * @param textType 
      * @param options pdf4u options
      */
     private void addOcrToSingleFile(String textType, Pdf4uOptions options) throws Exception {
         if (textType.equalsIgnoreCase("no text")) {
             createPdfWithoutOcr(options);
-        } else if (textType.equalsIgnoreCase("printed") || textType.equalsIgnoreCase("typed")) {
-            ocrMyPdfService.addOcrToFile(options);
         } else {
             krakenService.addOcrToFile(options);
         }
@@ -156,17 +152,10 @@ public class MultipleTextTypesService {
     }
 
     private boolean needsTranscript(String textType) {
-        return !textType.equalsIgnoreCase("no text")
-                && !textType.equalsIgnoreCase("typed")
-                && !textType.equalsIgnoreCase("printed");
+        return !textType.equalsIgnoreCase("no text");
     }
-
 
     public void setKrakenService(KrakenService krakenService) {
         this.krakenService = krakenService;
-    }
-
-    public void setOcrMyPdfService(OcrMyPdfService ocrMyPdfService) {
-        this.ocrMyPdfService = ocrMyPdfService;
     }
 }

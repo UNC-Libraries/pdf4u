@@ -45,7 +45,6 @@ public class Pdf4uCommandIT {
         ocrMyPdfService = new OcrMyPdfService();
         multipleTextTypesService = new MultipleTextTypesService();
         multipleTextTypesService.setKrakenService(krakenService);
-        multipleTextTypesService.setOcrMyPdfService(ocrMyPdfService);
     }
 
     @Test
