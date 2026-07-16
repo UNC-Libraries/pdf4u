@@ -21,7 +21,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MultipleTextTypesService {
     private static final Logger log = getLogger(MultipleTextTypesService.class);
 
-    private static final String IMG2PDF = "img2pdf";
     private static final String PDFUNITE = "pdfunite";
 
     private KrakenService krakenService = new KrakenService();
@@ -79,7 +78,7 @@ public class MultipleTextTypesService {
         // add each file to the list of intermediate PDFs then combine all intermediate PDFs using pdfunite
         // text types: printed, typed, handwritten printed, handwritten cursive, mixed, no text
         // if printed/typed/handwritten/mixed, use kraken and transcript
-        // if no text, use img2pdf to create PDF without OCR
+        // if no text, use graphicsmagick to create PDF without OCR
         try {
             for (int i = 0; i < imagePaths.size(); i++) {
                 List<String> textType = Collections.singletonList(textTypeList.get(i));
@@ -120,7 +119,7 @@ public class MultipleTextTypesService {
 
     /**
      * Add OCR to one file
-     * Use kraken for printed/handwritten text, and img2pdf for no text
+     * Use kraken for printed/handwritten text, and graphicsmagick for no text
      * @param textType 
      * @param options pdf4u options
      */
@@ -134,20 +133,16 @@ public class MultipleTextTypesService {
 
     /**
      * Create PDF without OCR for images without text type
-     * Use img2pdf
+     * Use graphicsmagick
      * @param options pdf4u options
      */
     private void createPdfWithoutOcr(Pdf4uOptions options) throws Exception {
         String inputFile = String.valueOf(options.getInputPath());
-        String output = "--output";
         String outputFile = String.valueOf(options.getOutputPath());
-        // --first-frame-only: only let the first frame of every multi-frame input image be converted
-        // into a page in the resulting PDF
-        String firstFrameOnly = "--first-frame-only";
 
-        var command = Arrays.asList(IMG2PDF, inputFile, output, outputFile, firstFrameOnly);
+        var command = Arrays.asList("gm", "convert", "-auto-orient", inputFile, outputFile);
 
-        log.debug("Running img2pdf command to generate PDF without OCR: {}", String.join(" ", command));
+        log.debug("Running graphicsmagick command to generate PDF without OCR: {}", String.join(" ", command));
         CommandUtility.executeCommand(command);
     }
 

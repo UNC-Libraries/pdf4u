@@ -87,7 +87,7 @@ public class MultipleTextTypesServiceTest {
 
             commandUtilityMock.verify(() ->
                     CommandUtility.executeCommand(List.of(
-                            "img2pdf", inputPath.toString(), "--output", outputPath.toString(), "--first-frame-only"
+                            "gm", "convert", "-auto-orient", inputPath.toString(), outputPath.toString()
                     ))
             );
         }
@@ -342,7 +342,7 @@ public class MultipleTextTypesServiceTest {
 
             commandUtilityMock.verify(() ->
                     CommandUtility.executeCommand(List.of(
-                            "img2pdf", image1.toString(), "--output", intermediatePdf1.toString(), "--first-frame-only"
+                            "gm", "convert", "-auto-orient", image1.toString(), intermediatePdf1.toString()
                     ))
             );
 
@@ -411,7 +411,7 @@ public class MultipleTextTypesServiceTest {
             assertEquals(List.of("handwritten"), handwrittenOptions.getTextTypeList());
 
             commandUtilityMock.verify(() -> CommandUtility.executeCommand(List.of(
-                            "img2pdf", image2.toString(), "--output", intermediatePdf2.toString(), "--first-frame-only"
+                            "gm", "convert", "-auto-orient", image2.toString(), intermediatePdf2.toString()
                     ))
             );
 
