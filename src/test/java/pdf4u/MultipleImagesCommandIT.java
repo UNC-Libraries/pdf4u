@@ -7,7 +7,6 @@ import pdf4u.options.Pdf4uOptions;
 import pdf4u.services.HocrToPdfService;
 import pdf4u.services.KrakenService;
 import pdf4u.services.MultipleTextTypesService;
-import pdf4u.services.OcrMyPdfService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -28,14 +27,12 @@ public class MultipleImagesCommandIT {
     private HocrToPdfService hocrToPdfService;
     private KrakenService krakenService;
     private MultipleTextTypesService multipleTextTypesService;
-    private OcrMyPdfService ocrMyPdfService;
 
     @BeforeEach
     public void setup() throws Exception {
         hocrToPdfService = new HocrToPdfService();
         krakenService = new KrakenService();
         krakenService.setHocrToPdfService(hocrToPdfService);
-        ocrMyPdfService = new OcrMyPdfService();
         multipleTextTypesService = new MultipleTextTypesService();
         multipleTextTypesService.setKrakenService(krakenService);
         System.setOut(new PrintStream(outputStreamCaptor));

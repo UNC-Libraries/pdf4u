@@ -9,7 +9,6 @@ import picocli.CommandLine.Command;
  */
 @Command(subcommands = {
         KrakenCommand.class,
-        OcrMyPdfCommand.class,
         MultipleImagesCommand.class
 })
 public class CLIMain {

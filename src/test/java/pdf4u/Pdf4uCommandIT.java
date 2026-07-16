@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import pdf4u.services.HocrToPdfService;
 import pdf4u.services.KrakenService;
 import pdf4u.services.MultipleTextTypesService;
-import pdf4u.services.OcrMyPdfService;
 import picocli.CommandLine;
 
 import java.io.ByteArrayOutputStream;
@@ -29,7 +28,6 @@ public class Pdf4uCommandIT {
     private HocrToPdfService hocrToPdfService;
     private KrakenService krakenService;
     private MultipleTextTypesService multipleTextTypesService;
-    private OcrMyPdfService ocrMyPdfService;
 
     @TempDir
     public Path tmpFolder;
@@ -42,53 +40,8 @@ public class Pdf4uCommandIT {
         hocrToPdfService = new HocrToPdfService();
         krakenService = new KrakenService();
         krakenService.setHocrToPdfService(hocrToPdfService);
-        ocrMyPdfService = new OcrMyPdfService();
         multipleTextTypesService = new MultipleTextTypesService();
         multipleTextTypesService.setKrakenService(krakenService);
-    }
-
-    @Test
-    public void testOcrMyPdfAddOcrToPdf() throws Exception {
-        String testFile = "src/test/resources/cat.pdf";
-        String[] args = new String[] {
-                "ocrmypdf",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString()
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
-    public void testOcrmyPdfRedoExistingOcr() throws Exception {
-        String testFile = "src/test/resources/Cat-Wikipedia.pdf";
-        String[] args = new String[] {
-                "ocrmypdf",
-                "pdf_redo_ocr", "-i", testFile, "-o", tmpFolder.toString()
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
-    public void testOcrMyPdfAddOcrToImage() throws Exception {
-        String testFile = "src/test/resources/dog-wikipedia.png";
-        String[] args = new String[] {
-                "ocrmypdf",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString()
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
-    public void testOcrMyPdfAddOcrtoMultipleImages() throws Exception {
-        String testFile = "src/test/resources/listofimages.txt";
-        String[] args = new String[] {
-                "ocrmypdf",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString()
-        };
-
-        executeExpectSuccess(args);
     }
 
     @Test
@@ -146,7 +99,7 @@ public class Pdf4uCommandIT {
         String testFile = "src/test/resources/alt21.jpg";
         String[] args = new String[] {
                 "multiple_images",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(),
+                "add_ocr", "-i", testFile, "-o", tmpFolder.resolve("alt21.pdf").toString(),
                 "-tt", "no text"
         };
 
