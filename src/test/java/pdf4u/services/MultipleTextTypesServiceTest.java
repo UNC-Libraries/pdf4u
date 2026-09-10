@@ -169,6 +169,66 @@ public class MultipleTextTypesServiceTest {
     }
 
     @Test
+    public void addOcrToMultipleFilesWithOnlyOneFileSuccessTest() throws Exception {
+        Path inputListPath = tempDir.resolve("images.txt");
+        Path transcriptListPath = tempDir.resolve("transcripts.txt");
+        Path outputPath = tempDir.resolve("combined-output.pdf");
+
+        Path image1 = tempDir.resolve("image1.tif");
+
+        Path transcript1 = tempDir.resolve("transcript1.txt");
+
+        Path intermediatePdf1 = tempDir.resolve("image1.pdf");
+
+        Path outputFile = tempDir.resolve("combined-output.pdf");
+
+        Files.createFile(intermediatePdf1);
+
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(inputListPath);
+        options.setTranscriptPath(transcriptListPath);
+        options.setOutputPath(outputPath);
+        options.setTextTypeList(List.of("printed"));
+
+        try (
+                MockedStatic<FileService> fileServiceMock = mockStatic(FileService.class);
+                MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)
+        ) {
+            fileServiceMock.when(() -> FileService.readPathList(inputListPath)).thenReturn(List.of(image1));
+
+            fileServiceMock.when(() ->
+                    FileService.readPathList(transcriptListPath)).thenReturn(List.of(transcript1));
+
+            fileServiceMock.when(() -> FileService.prepareTempPath(image1.toString(), ".pdf"))
+                    .thenReturn(intermediatePdf1);
+
+            Path result = service.addOcrToMultipleFiles(options);
+
+            assertEquals(outputFile, result);
+
+            ArgumentCaptor<Pdf4uOptions> krakenOptionsCaptor = ArgumentCaptor.forClass(Pdf4uOptions.class);
+            verify(krakenService, times(1)).addOcrToFile(krakenOptionsCaptor.capture());
+
+            List<Pdf4uOptions> capturedOptions = krakenOptionsCaptor.getAllValues();
+
+            Pdf4uOptions printedOptions = capturedOptions.get(0);
+            assertEquals(image1, printedOptions.getInputPath());
+            assertEquals(intermediatePdf1, printedOptions.getOutputPath());
+            assertEquals(transcript1, printedOptions.getTranscriptPath());
+            assertEquals(List.of("printed"), printedOptions.getTextTypeList());
+
+            commandUtilityMock.verify(() -> CommandUtility.executeCommand(List.of(
+                            "pdfunite",
+                            intermediatePdf1.toString(),
+                            outputFile.toString()
+                    ))
+            );
+
+            assertFalse(Files.exists(intermediatePdf1));
+        }
+    }
+
+    @Test
     public void addOcrToMultipleFilesDifferentCountsTest() throws Exception {
         Path inputListPath = tempDir.resolve("images.txt");
         Path transcriptListPath = tempDir.resolve("transcripts.txt");
