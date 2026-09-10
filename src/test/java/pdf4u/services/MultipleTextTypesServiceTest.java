@@ -45,6 +45,7 @@ public class MultipleTextTypesServiceTest {
     public void addOcrToFileWithSinglePrintedTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("printed"));
+        options.setInputPath(tempDir.resolve("image1.tif"));
 
         service.addOcrToFile(options);
 
@@ -55,6 +56,7 @@ public class MultipleTextTypesServiceTest {
     public void addOcrToFileWithSingleTypedTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("typed"));
+        options.setInputPath(tempDir.resolve("image1.tif"));
 
         service.addOcrToFile(options);
 
@@ -65,6 +67,7 @@ public class MultipleTextTypesServiceTest {
     public void addOcrToFileWithSingleHandwrittenTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("handwritten"));
+        options.setInputPath(tempDir.resolve("image1.tif"));
 
         service.addOcrToFile(options);
 
