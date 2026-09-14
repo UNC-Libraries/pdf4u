@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -124,7 +125,9 @@ public class MultipleTextTypesService {
      * @param options pdf4u options
      */
     private void addOcrToSingleFile(String textType, Pdf4uOptions options) throws Exception {
-        if (textType.equalsIgnoreCase("no text")) {
+        log.debug("Text type received by addOcrToSingleFile: [{}]", textType);
+
+        if (isNoText(textType)) {
             createPdfWithoutOcr(options);
         } else {
             krakenService.addOcrToFile(options);
@@ -146,8 +149,18 @@ public class MultipleTextTypesService {
         CommandUtility.executeCommand(command);
     }
 
+    private boolean isNoText(String textType) {
+        if (textType == null) {
+            return false;
+        }
+
+        String normalized = textType.strip().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+
+        return normalized.equals("notext");
+    }
+
     private boolean needsTranscript(String textType) {
-        return !textType.equalsIgnoreCase("no text");
+        return !isNoText(textType);
     }
 
     public void setKrakenService(KrakenService krakenService) {
