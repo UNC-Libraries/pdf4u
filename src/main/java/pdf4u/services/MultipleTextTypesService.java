@@ -33,7 +33,11 @@ public class MultipleTextTypesService {
     public void addOcrToFile(Pdf4uOptions options) throws Exception {
         var textTypeList = options.getTextTypeList();
 
-        if (textTypeList.size() == 1 && !options.getInputPath().endsWith(".txt")) {
+        if (textTypeList.size() == 1) {
+            if (options.getInputPath().endsWith(".txt")) {
+                var inputPath = FileService.readPathList(options.getInputPath()).getFirst();
+                options.setInputPath(inputPath);
+            }
             addOcrToSingleFile(textTypeList.getFirst(), options);
         } else {
             addOcrToMultipleFiles(options);
