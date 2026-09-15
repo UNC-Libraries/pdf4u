@@ -45,35 +45,11 @@ public class Pdf4uCommandIT {
     }
 
     @Test
-    public void testKrakenAddOcrToImage() throws Exception {
-        String testFile = "src/test/resources/alt21.jpg";
-        String textFile = "src/test/resources/alt21.txt";
-        String[] args = new String[] {
-                "kraken",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
-    public void testKrakenAddOcrToMultipleImages() throws Exception {
-        String testFile = "src/test/resources/listofimageshandwritten.txt";
-        String textFile = "src/test/resources/listoftranscripts.txt";
-        String[] args = new String[] {
-                "kraken",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile
-        };
-
-        executeExpectSuccess(args);
-    }
-
-    @Test
     public void testMultipleImagesTextTypeHandwritten() throws Exception {
         String testFile = "src/test/resources/alt21.jpg";
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
-                "multiple_images",
+                "pdf4u",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
                 "-tt", "handwritten-cursive"
         };
@@ -86,7 +62,7 @@ public class Pdf4uCommandIT {
         String testFile = "src/test/resources/alt21.jpg";
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
-                "multiple_images",
+                "pdf4u",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
                 "-tt", "printed"
         };
@@ -98,7 +74,7 @@ public class Pdf4uCommandIT {
     public void testMultipleImagesTextTypeNoText() throws Exception {
         String testFile = "src/test/resources/alt21.jpg";
         String[] args = new String[] {
-                "multiple_images",
+                "pdf4u",
                 "add_ocr", "-i", testFile, "-o", tmpFolder.resolve("alt21.pdf").toString(),
                 "-tt", "no text"
         };

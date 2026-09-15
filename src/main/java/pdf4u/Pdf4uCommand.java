@@ -14,10 +14,10 @@ import static pdf4u.util.CLIConstants.outputLogger;
 /**
  * @author krwong
  */
-@Command(name = "multiple_images",
+@Command(name = "pdf4u",
         description = "pdf4u commands to add OCR to documents with multiple text types")
-public class MultipleImagesCommand {
-    private static final Logger log = getLogger(MultipleImagesCommand.class);
+public class Pdf4uCommand {
+    private static final Logger log = getLogger(Pdf4uCommand.class);
     @ParentCommand
     private CLIMain parentCommand;
 
