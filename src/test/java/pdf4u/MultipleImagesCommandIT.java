@@ -123,4 +123,24 @@ public class MultipleImagesCommandIT {
 
         assertTrue(Files.exists(outputPath));
     }
+
+    @Test
+    public void testAddOcrToMultipleFilesWithTextTypeAndNoTranscriptSuccess() throws Exception {
+        Path inputPath = Path.of("src/test/resources/listofimages.txt");
+        Path outputPath = tmpFolder.resolve("multipleimages.pdf");
+        Path transcriptPath = tmpFolder.resolve("transcript.txt");
+        List<String> lines =
+                Arrays.asList("no transcript", "no transcript", "no transcript", "no transcript", "no transcript");
+        Files.write(transcriptPath, lines, StandardCharsets.UTF_8);
+
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(inputPath);
+        options.setOutputPath(outputPath);
+        options.setTranscriptPath(transcriptPath);
+        options.setTextTypeList(List.of("printed", "handwritten", "mixed", "handwritten", "no text"));
+
+        multipleTextTypesService.addOcrToMultipleFiles(options);
+
+        assertTrue(Files.exists(outputPath));
+    }
 }

@@ -4,12 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,7 +40,9 @@ public class MultipleTextTypesServiceTest {
     public void addOcrToFileWithSinglePrintedTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("printed"));
-        options.setInputPath(tempDir.resolve("image1.tif"));
+        options.setInputPath(Path.of("src/test/resources/alt21.jpg"));
+        options.setOutputPath(tempDir.resolve("alt21.pdf"));
+        options.setTranscriptPath(Path.of("src/test/resources/alt21.txt"));
 
         service.addOcrToFile(options);
 
@@ -56,7 +53,9 @@ public class MultipleTextTypesServiceTest {
     public void addOcrToFileWithSingleTypedTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("typed"));
-        options.setInputPath(tempDir.resolve("image1.tif"));
+        options.setInputPath(Path.of("src/test/resources/alt21.jpg"));
+        options.setOutputPath(tempDir.resolve("alt21.pdf"));
+        options.setTranscriptPath(Path.of("src/test/resources/alt21.txt"));
 
         service.addOcrToFile(options);
 
@@ -67,7 +66,9 @@ public class MultipleTextTypesServiceTest {
     public void addOcrToFileWithSingleHandwrittenTextType() throws Exception {
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("handwritten"));
-        options.setInputPath(tempDir.resolve("image1.tif"));
+        options.setInputPath(Path.of("src/test/resources/alt38.jpg"));
+        options.setOutputPath(tempDir.resolve("alt38.pdf"));
+        options.setTranscriptPath(Path.of("src/test/resources/alt38.txt"));
 
         service.addOcrToFile(options);
 
@@ -82,6 +83,51 @@ public class MultipleTextTypesServiceTest {
         options.setTextTypeList(List.of("no text"));
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
+
+        try (MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)) {
+            service.addOcrToFile(options);
+
+            verifyNoInteractions(krakenService);
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "gm", "convert", "-auto-orient", inputPath.toString(), outputPath.toString()
+                    ))
+            );
+        }
+    }
+
+    @Test
+    public void addOcrToFileWithHandwrittenTextTypeNullTranscript() throws Exception {
+        Path inputPath = Path.of("src/test/resources/alt38.jpg");
+        Path outputPath = tempDir.resolve("alt38.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setTextTypeList(List.of("handwritten"));
+        options.setInputPath(inputPath);
+        options.setOutputPath(outputPath);
+
+        try (MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)) {
+            service.addOcrToFile(options);
+
+            verifyNoInteractions(krakenService);
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "gm", "convert", "-auto-orient", inputPath.toString(), outputPath.toString()
+                    ))
+            );
+        }
+    }
+
+    @Test
+    public void addOcrToFileWithHandwrittenTextTypeNoTranscript() throws Exception {
+        Path inputPath = Path.of("src/test/resources/alt38.jpg");
+        Path outputPath = tempDir.resolve("alt38.pdf");
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setTextTypeList(List.of("handwritten"));
+        options.setInputPath(inputPath);
+        options.setOutputPath(outputPath);
+        options.setTranscriptPath(Path.of("no transcript"));
 
         try (MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)) {
             service.addOcrToFile(options);
@@ -228,6 +274,110 @@ public class MultipleTextTypesServiceTest {
             );
 
             assertFalse(Files.exists(intermediatePdf1));
+        }
+    }
+
+    @Test
+    public void addOcrToMultipleFilesWithOnlyOneFileNoTranscriptTest() throws Exception {
+        Path inputListPath = tempDir.resolve("images.txt");
+        Path transcriptListPath = tempDir.resolve("transcripts.txt");
+        Path outputPath = tempDir.resolve("combined-output.pdf");
+
+        Path image1 = tempDir.resolve("image1.tif");
+        Path noTranscript = Path.of("no transcript");
+        Path intermediatePdf1 = tempDir.resolve("image1.pdf");
+
+        Files.createFile(intermediatePdf1);
+
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(inputListPath);
+        options.setTranscriptPath(transcriptListPath);
+        options.setOutputPath(outputPath);
+        options.setTextTypeList(List.of("handwritten"));
+
+        try (
+                MockedStatic<FileService> fileServiceMock = mockStatic(FileService.class);
+                MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)
+        ) {
+            fileServiceMock.when(() ->
+                            FileService.readPathList(inputListPath))
+                    .thenReturn(List.of(image1));
+
+            fileServiceMock.when(() ->
+                            FileService.readPathList(transcriptListPath))
+                    .thenReturn(List.of(noTranscript));
+
+            fileServiceMock.when(() ->
+                            FileService.prepareTempPath(image1.toString(), ".pdf"))
+                    .thenReturn(intermediatePdf1);
+
+            Path result = service.addOcrToMultipleFiles(options);
+
+            assertEquals(outputPath, result);
+
+            verifyNoInteractions(krakenService);
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "gm", "convert", "-auto-orient", image1.toString(), intermediatePdf1.toString()
+                    ))
+            );
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "pdfunite",
+                            intermediatePdf1.toString(),
+                            outputPath.toString()
+                    ))
+            );
+
+            assertFalse(Files.exists(intermediatePdf1));
+        }
+    }
+
+    @Test
+    public void addOcrToMultipleFilesDoesNotSetNoTranscriptPathTest() throws Exception {
+        Path inputListPath = tempDir.resolve("images.txt");
+        Path transcriptListPath = tempDir.resolve("transcripts.txt");
+        Path outputPath = tempDir.resolve("output.pdf");
+
+        Path image = tempDir.resolve("image.tif");
+        Path noTranscript = Path.of("no transcript");
+        Path intermediatePdf = tempDir.resolve("image.pdf");
+
+        Files.createFile(intermediatePdf);
+
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(inputListPath);
+        options.setTranscriptPath(transcriptListPath);
+        options.setOutputPath(outputPath);
+        options.setTextTypeList(List.of("handwritten"));
+
+        try (
+                MockedStatic<FileService> fileServiceMock = mockStatic(FileService.class);
+                MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)
+        ) {
+            fileServiceMock.when(() ->
+                            FileService.readPathList(inputListPath))
+                    .thenReturn(List.of(image));
+
+            fileServiceMock.when(() ->
+                            FileService.readPathList(transcriptListPath))
+                    .thenReturn(List.of(noTranscript));
+
+            fileServiceMock.when(() ->
+                            FileService.prepareTempPath(image.toString(), ".pdf"))
+                    .thenReturn(intermediatePdf);
+
+            service.addOcrToMultipleFiles(options);
+
+            verifyNoInteractions(krakenService);
+
+            commandUtilityMock.verify(() ->
+                    CommandUtility.executeCommand(List.of(
+                            "gm", "convert", "-auto-orient", image.toString(), intermediatePdf.toString()
+                    ))
+            );
         }
     }
 

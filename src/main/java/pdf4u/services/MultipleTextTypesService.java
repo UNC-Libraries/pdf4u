@@ -79,7 +79,7 @@ public class MultipleTextTypesService {
         // add each file to the list of intermediate PDFs then combine all intermediate PDFs using pdfunite
         // text types: printed, typed, handwritten printed, handwritten cursive, mixed, no text
         // if printed/typed/handwritten/mixed, use kraken and transcript
-        // if no text, use graphicsmagick to create PDF without OCR
+        // if no text or no transcript, use graphicsmagick to create PDF without OCR
         try {
             for (int i = 0; i < imagePaths.size(); i++) {
                 List<String> textType = Collections.singletonList(textTypeList.get(i));
@@ -91,9 +91,15 @@ public class MultipleTextTypesService {
                 fileOptions.setOutputPath(pdfPath);
                 fileOptions.setTextTypeList(textType);
 
-                // set transcript path if text type is not no text, typed, or printed
+                // set transcript path if it exists and text type is not no text
                 if (needsTranscript(textTypeList.get(i))) {
-                    fileOptions.setTranscriptPath(transcriptPaths.get(i));
+                    Path transcriptPath = transcriptPaths.get(i);
+
+                    if (hasUsableTranscript(transcriptPath)) {
+                        fileOptions.setTranscriptPath(transcriptPath);
+                    } else {
+                        log.debug("No usable transcript for file {}", imagePath);
+                    }
                 }
 
                 addOcrToSingleFile(textTypeList.get(i), fileOptions);
@@ -120,14 +126,14 @@ public class MultipleTextTypesService {
 
     /**
      * Add OCR to one file
-     * Use kraken for printed/handwritten text, and graphicsmagick for no text
+     * Use kraken for printed/handwritten text, and graphicsmagick for no text and files without transcripts
      * @param textType 
      * @param options pdf4u options
      */
     private void addOcrToSingleFile(String textType, Pdf4uOptions options) throws Exception {
         log.debug("Text type received by addOcrToSingleFile: [{}]", textType);
 
-        if (isNoText(textType)) {
+        if (isNoText(textType) || !hasUsableTranscript(options.getTranscriptPath())) {
             createPdfWithoutOcr(options);
         } else {
             krakenService.addOcrToFile(options);
@@ -157,6 +163,11 @@ public class MultipleTextTypesService {
         String normalized = textType.strip().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
 
         return normalized.equals("notext");
+    }
+
+    private boolean hasUsableTranscript(Path transcriptPath) {
+        return transcriptPath != null
+                && !transcriptPath.toString().strip().equalsIgnoreCase("no transcript");
     }
 
     private boolean needsTranscript(String textType) {
