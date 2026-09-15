@@ -54,7 +54,7 @@ public class KrakenServiceTest {
 
             mockedStatic.verify(() -> CommandUtility.executeCommand(
                     Arrays.asList("kraken", "-h", "-i", mockedInput.toString(), mockedOutput.toString(), "segment",
-                            "-bl", "ocr", "-m", "ManuMcFondue.mlmodel")));
+                            "-bl", "ocr", "-m", "McCATMuS_nfd_nofix_V1.mlmodel")));
         }
     }
 

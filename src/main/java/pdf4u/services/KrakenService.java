@@ -68,9 +68,10 @@ public class KrakenService {
         String bl = "-bl";
         String ocr = "ocr";
         String m = "-m";
-        // ManuMcFondue.mlmodel: Model train on openly licensed data from HTR-United from the 17th century to the 21st were used
+        // McCATMuS_nfd_nofix_V1.mlmodel: McCATMuS - Transcription model for handwritten, printed and typewritten
+        //         documents from the 16th century to the 21st century
         // `kraken list` for full list of available models and `kraken get <model>` to download model
-        String model = "ManuMcFondue.mlmodel";
+        String model = "McCATMuS_nfd_nofix_V1.mlmodel";
 
         var command = Arrays.asList(KRAKEN, h, i, inputFile, outputFile.toString(), segment, bl, ocr, m, model);
         log.debug("Running kraken command: {}", String.join(" ", command));

@@ -104,7 +104,7 @@ public class HocrToPdfServiceTest {
             mockedStatic.verify(() -> CommandUtility.executeCommand(
                     Arrays.asList("gm", "identify", "-format", "\"%x\"", mockedInput.toString())));
             mockedStatic.verify(() -> CommandUtility.executeCommandInputFile(
-                    Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput + ".pdf", "-r",
+                    Arrays.asList("hocr2pdf", "-i", mockedInput.toString(), "-o", mockedOutput.toString(), "-r",
                             "600"), mockedHocr.toString()));
 
         }
