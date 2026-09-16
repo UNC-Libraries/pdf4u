@@ -145,7 +145,6 @@ public class MultipleTextTypesService {
      * @param options pdf4u options
      */
     private void addOcrToSingleFile(Pdf4uOptions options) throws Exception {
-        var opt = options;
         var textType = options.getTextTypeList().getFirst();
         log.debug("Text type received by addOcrToSingleFile: [{}]", textType);
 
