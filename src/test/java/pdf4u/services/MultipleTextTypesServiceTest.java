@@ -121,13 +121,13 @@ public class MultipleTextTypesServiceTest {
 
     @Test
     public void addOcrToFileWithHandwrittenTextTypeNoTranscript() throws Exception {
-        Path inputPath = Path.of("src/test/resources/alt38.jpg");
-        Path outputPath = tempDir.resolve("alt38.pdf");
+        Path inputPath = Path.of("src/test/resources/alt21.jpg");
+        Path outputPath = tempDir.resolve("alt21.pdf");
         Pdf4uOptions options = new Pdf4uOptions();
         options.setTextTypeList(List.of("handwritten"));
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
-        options.setTranscriptPath(Path.of("no transcript"));
+        options.setTranscriptPath(Path.of("src/test/resources/alt21_notranscript.txt"));
 
         try (MockedStatic<CommandUtility> commandUtilityMock = mockStatic(CommandUtility.class)) {
             service.addOcrToFile(options);
