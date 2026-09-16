@@ -1,5 +1,6 @@
 package pdf4u.services;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
@@ -34,11 +35,21 @@ public class MultipleTextTypesService {
         var textTypeList = options.getTextTypeList();
 
         if (textTypeList.size() == 1) {
-            if (options.getInputPath().endsWith(".txt")) {
+            // set input path to file listed in .txt
+            if (FilenameUtils.getExtension(options.getInputPath().toString()).equalsIgnoreCase("txt")) {
                 var inputPath = FileService.readPathList(options.getInputPath()).getFirst();
                 options.setInputPath(inputPath);
             }
-            addOcrToSingleFile(textTypeList.getFirst(), options);
+            // if transcript path is provided,
+            // check if the first line contains "no transcript" and if yes, set transcript path to "no transcript"
+            if (options.getTranscriptPath() != null) {
+                var transcriptPath = FileService.readPathList(options.getTranscriptPath()).getFirst();
+                if (transcriptPath.toString().equalsIgnoreCase("no transcript")) {
+                    options.setTranscriptPath(transcriptPath);
+                }
+            }
+
+            addOcrToSingleFile(options);
         } else {
             addOcrToMultipleFiles(options);
         }
@@ -106,7 +117,7 @@ public class MultipleTextTypesService {
                     }
                 }
 
-                addOcrToSingleFile(textTypeList.get(i), fileOptions);
+                addOcrToSingleFile(fileOptions);
 
                 intermediatePdfs.add(pdfPath.toString());
             }
@@ -131,10 +142,11 @@ public class MultipleTextTypesService {
     /**
      * Add OCR to one file
      * Use kraken for printed/handwritten text, and graphicsmagick for no text and files without transcripts
-     * @param textType 
      * @param options pdf4u options
      */
-    private void addOcrToSingleFile(String textType, Pdf4uOptions options) throws Exception {
+    private void addOcrToSingleFile(Pdf4uOptions options) throws Exception {
+        var opt = options;
+        var textType = options.getTextTypeList().getFirst();
         log.debug("Text type received by addOcrToSingleFile: [{}]", textType);
 
         if (isNoText(textType) || !hasUsableTranscript(options.getTranscriptPath())) {

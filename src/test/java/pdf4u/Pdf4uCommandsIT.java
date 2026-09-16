@@ -153,6 +153,25 @@ public class Pdf4uCommandsIT {
     }
 
     @Test
+    public void testAddOcrToFileTxtInputNoTranscriptTxt() throws Exception {
+        List<String> lines = List.of("src/test/resources/alt21.jpg");
+        Path inputPath = tmpFolder.resolve("alt21.txt");
+        Files.write(inputPath, lines, StandardCharsets.UTF_8);
+        Path outputPath = tmpFolder.resolve("alt21.pdf");
+        Path transcriptPath = Path.of("src/test/resources/alt21_notranscript.txt");
+
+        Pdf4uOptions options = new Pdf4uOptions();
+        options.setInputPath(inputPath);
+        options.setOutputPath(outputPath);
+        options.setTranscriptPath(transcriptPath);
+        options.setTextTypeList(List.of("mixed"));
+
+        multipleTextTypesService.addOcrToFile(options);
+
+        assertTrue(Files.exists(outputPath));
+    }
+
+    @Test
     public void testAddOcrToMultipleFilesPrintedMixedTypeSuccess() throws Exception {
         Path inputPath = Path.of("src/test/resources/listofimageshandwritten.txt");
         Path transcriptPath = Path.of("src/test/resources/listoftranscripts.txt");
