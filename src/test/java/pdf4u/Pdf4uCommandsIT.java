@@ -113,7 +113,7 @@ public class Pdf4uCommandsIT {
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
         options.setTranscriptPath(transcriptPath);
-        options.setTextTypeList(List.of("handwritten print"));
+        options.setTextTypeList(List.of("handwritten_print"));
 
         multipleTextTypesService.addOcrToFile(options);
 
@@ -221,7 +221,7 @@ public class Pdf4uCommandsIT {
         options.setInputPath(inputPath);
         options.setOutputPath(outputPath);
         options.setTranscriptPath(transcriptPath);
-        options.setTextTypeList(List.of("printed", "handwritten", "mixed", "handwritten", "no text"));
+        options.setTextTypeList(List.of("printed", "handwritten_print", "mixed", "handwritten_cursive", "no text"));
 
         multipleTextTypesService.addOcrToMultipleFiles(options);
 

@@ -6,13 +6,15 @@ import pdf4u.options.Pdf4uOptions;
 import pdf4u.util.CommandUtility;
 import pdf4u.util.FileService;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -25,109 +27,57 @@ public class MultipleTextTypesService {
 
     private static final String PDFUNITE = "pdfunite";
 
+    private static final Set<String> TEXT_TYPES_REQUIRING_TRANSCRIPTS = new HashSet<>(
+            Arrays.asList("printed", "typed", "handwritten_print", "handwritten_cursive", "mixed")
+    );
+
     private KrakenService krakenService = new KrakenService();
 
     /**
-     * For lists of images with different text types, convert each image into a searchable PDF then combine all PDFs
+     * Add OCR to one or more files depending on the supplied text type list.
+     *  If there is one text type, process one file.
+     *  If there are multiple text types, process multiple files and combine the PDFs.
      * @param options pdf4u options
      */
     public void addOcrToFile(Pdf4uOptions options) throws Exception {
-        var textTypeList = options.getTextTypeList();
-
-        if (textTypeList.size() == 1) {
-            // set input path to file listed in .txt
-            if (FilenameUtils.getExtension(options.getInputPath().toString()).equalsIgnoreCase("txt")) {
-                var inputPath = FileService.readPathList(options.getInputPath()).getFirst();
-                options.setInputPath(inputPath);
-            }
-            // if transcript path is provided,
-            // check if the first line contains "no transcript" and if yes, set transcript path to "no transcript"
-            if (options.getTranscriptPath() != null) {
-                var transcriptPath = FileService.readPathList(options.getTranscriptPath()).getFirst();
-                if (transcriptPath.toString().equalsIgnoreCase("no transcript")) {
-                    options.setTranscriptPath(transcriptPath);
-                }
-            }
-
+        if (options.getTextTypeList().size() == 1) {
+            prepareSingleFileOptions(options);
             addOcrToSingleFile(options);
-        } else {
-            addOcrToMultipleFiles(options);
+            return;
         }
+
+        addOcrToMultipleFiles(options);
     }
 
     /**
-     * For multiple images with different text types, convert each image into a searchable PDF then combine all PDFs
+     * For multiple images with different text types, convert each image into a PDF then combine all PDFs
      * @param options pdf4u options
      * @return outputFile path to the combined output PDF
      */
     public Path addOcrToMultipleFiles(Pdf4uOptions options) throws Exception {
-        Path outputFile = options.getOutputPath();
+        Path outputFile = FileService.buildOutputFile(options.getOutputPath(),
+                FilenameUtils.getBaseName(options.getInputPath().toString()), ".pdf");
+
+        List<Path> imagePaths = FileService.readPathList(options.getInputPath());
+        List<String> textTypes = options.getTextTypeList();
+        List<Path> transcriptPaths = readTranscriptPathsIfNeeded(options, textTypes);
+
+        validateInputListSizes(imagePaths, textTypes, transcriptPaths);
 
         List<String> intermediatePdfs = new ArrayList<>();
-        List<Path> imagePaths = FileService.readPathList(options.getInputPath());
-        List<String> textTypeList = options.getTextTypeList();
 
-        boolean needsAnyTranscripts = textTypeList.stream()
-                .anyMatch(this::needsTranscript);
-
-        List<Path> transcriptPaths = needsAnyTranscripts
-                ? FileService.readPathList(options.getTranscriptPath())
-                : Collections.emptyList();
-
-        // check that list of text types and images have the same number of entries
-        if (textTypeList.size() != imagePaths.size()) {
-            throw new IllegalArgumentException(
-                    "Text type list and image list must have the same number of entries. "
-                            + "Text types = " + textTypeList.size()
-                            + ", images = " + imagePaths.size());
-        }
-
-        // if transcripts needed, check that list of images and transcripts have the same number of entries
-        if (needsAnyTranscripts && imagePaths.size() != transcriptPaths.size()) {
-            throw new IllegalArgumentException(
-                    "Image list and transcript list must have the same number of entries when transcripts are needed. "
-                            + "Images = " + imagePaths.size()
-                            + ", transcripts = " + transcriptPaths.size());
-        }
-
-        // for each file in the list, determine the text type then convert the file using OcrMyPdf or Kraken
-        // add each file to the list of intermediate PDFs then combine all intermediate PDFs using pdfunite
-        // text types: printed, typed, handwritten printed, handwritten cursive, mixed, no text
-        // if printed/typed/handwritten/mixed, use kraken and transcript
-        // if no text or no transcript, use graphicsmagick to create PDF without OCR
         try {
-            for (int i = 0; i < imagePaths.size(); i++) {
-                List<String> textType = Collections.singletonList(textTypeList.get(i));
-                Path imagePath = imagePaths.get(i);
-                Path pdfPath = FileService.prepareTempPath(imagePath.toString(), ".pdf");
+            createIntermediatePdfs(imagePaths, textTypes, transcriptPaths, intermediatePdfs);
 
-                Pdf4uOptions fileOptions = new Pdf4uOptions();
-                fileOptions.setInputPath(imagePath);
-                fileOptions.setOutputPath(pdfPath);
-                fileOptions.setTextTypeList(textType);
-
-                // set transcript path if it exists and text type is not no text
-                if (needsTranscript(textTypeList.get(i))) {
-                    Path transcriptPath = transcriptPaths.get(i);
-
-                    if (hasUsableTranscript(transcriptPath)) {
-                        fileOptions.setTranscriptPath(transcriptPath);
-                    } else {
-                        log.debug("No usable transcript for file {}", imagePath);
-                    }
-                }
-
-                addOcrToSingleFile(fileOptions);
-
-                intermediatePdfs.add(pdfPath.toString());
-            }
-
+            // combine pdfs
             List<String> command = new ArrayList<>();
+
             command.add(PDFUNITE);
             command.addAll(intermediatePdfs);
             command.add(outputFile.toString());
 
             log.debug("Combining intermediate PDFs: {}", String.join(" ", command));
+
             CommandUtility.executeCommand(command);
         } finally {
             // delete intermediate files after combined PDF generated
@@ -140,18 +90,113 @@ public class MultipleTextTypesService {
     }
 
     /**
-     * Add OCR to one file
-     * Use kraken for printed/handwritten text, and graphicsmagick for no text and files without transcripts
+     * Add OCR to one file.
+     *  Uses Kraken when the file has OCR-able text and a usable transcript.
+     *  Uses GraphicsMagick when the file has no text or no usable transcript.
      * @param options pdf4u options
      */
     private void addOcrToSingleFile(Pdf4uOptions options) throws Exception {
-        var textType = options.getTextTypeList().getFirst();
+        String textType = options.getTextTypeList().getFirst();
+
         log.debug("Text type received by addOcrToSingleFile: [{}]", textType);
 
-        if (isNoText(textType) || !hasUsableTranscript(options.getTranscriptPath())) {
+        if (isNoText(textType) || options.getTranscriptPath() == null) {
             createPdfWithoutOcr(options);
         } else {
             krakenService.addOcrToFile(options);
+        }
+    }
+
+    /**
+     * Normalize options for the single-file case.
+     *
+     * If the input path points to a .txt file, use the first path listed in that file.
+     * If the transcript path points to a list file, use the first transcript path listed in that file.
+     */
+    private void prepareSingleFileOptions(Pdf4uOptions options) throws Exception {
+        if (FilenameUtils.getExtension(options.getInputPath().toString()).equalsIgnoreCase("txt")) {
+            Path firstInputPath = FileService.readPathList(options.getInputPath()).getFirst();
+            options.setInputPath(firstInputPath);
+        }
+
+        options.setOutputPath(FileService.buildOutputFile(options.getOutputPath(),
+                FilenameUtils.getBaseName(options.getInputPath().toString()), ".pdf"));
+
+        if (options.getTranscriptPath() == null) {
+            return;
+        }
+
+        Path firstTranscriptPath = FileService.readPathList(options.getTranscriptPath()).getFirst();
+
+        if (firstTranscriptPath.toString().strip().equalsIgnoreCase("no transcript")) {
+            options.setTranscriptPath(null);
+        }
+    }
+
+    private void createIntermediatePdfs(List<Path> imagePaths, List<String> textTypes, List<Path> transcriptPaths,
+            List<String> intermediatePdfs) throws Exception {
+        for (int i = 0; i < imagePaths.size(); i++) {
+            Path imagePath = imagePaths.get(i);
+            String textType = textTypes.get(i);
+            Path pdfPath = FileService.prepareTempPath(imagePath.toString(), ".pdf");
+
+            Pdf4uOptions fileOptions = new Pdf4uOptions();
+            fileOptions.setInputPath(imagePath);
+            fileOptions.setOutputPath(pdfPath);
+            fileOptions.setTextTypeList(Collections.singletonList(textType));
+
+            if (needsTranscript(textType)) {
+                Path transcriptPath = transcriptPaths.get(i);
+
+                if (transcriptPath != null) {
+                    fileOptions.setTranscriptPath(transcriptPath);
+                } else {
+                    log.debug("No usable transcript for file {}", imagePath);
+                }
+            }
+
+            addOcrToSingleFile(fileOptions);
+            intermediatePdfs.add(pdfPath.toString());
+        }
+    }
+
+    /**
+     * Read list of transcript paths
+     * The sentinel value "no transcript" is normalized to null immediately.
+     */
+    private List<Path> readTranscriptPathsIfNeeded(Pdf4uOptions options, List<String> textTypes) throws Exception {
+        if (textTypes.stream().noneMatch(this::needsTranscript)) {
+            return Collections.emptyList();
+        }
+
+        List<Path> paths = new ArrayList<>();
+
+        for (String line : Files.readAllLines(options.getTranscriptPath(), StandardCharsets.UTF_8)) {
+            String trimmed = line.trim();
+
+            if (!trimmed.isEmpty()) {
+                paths.add(trimmed.equalsIgnoreCase("no transcript") ? null : Path.of(trimmed));
+            }
+        }
+
+        return paths;
+    }
+
+    private void validateInputListSizes(List<Path> imagePaths, List<String> textTypes, List<Path> transcriptPaths) {
+        if (textTypes.size() != imagePaths.size()) {
+            throw new IllegalArgumentException(
+                    "Text type list and image list must have the same number of entries. "
+                            + "Text types = " + textTypes.size()
+                            + ", images = " + imagePaths.size()
+            );
+        }
+
+        if (!transcriptPaths.isEmpty() && imagePaths.size() != transcriptPaths.size()) {
+            throw new IllegalArgumentException(
+                    "Image list and transcript list must have the same number of entries when transcripts are needed. "
+                            + "Images = " + imagePaths.size()
+                            + ", transcripts = " + transcriptPaths.size()
+            );
         }
     }
 
@@ -171,22 +216,11 @@ public class MultipleTextTypesService {
     }
 
     private boolean isNoText(String textType) {
-        if (textType == null) {
-            return false;
-        }
-
-        String normalized = textType.strip().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
-
-        return normalized.equals("notext");
-    }
-
-    private boolean hasUsableTranscript(Path transcriptPath) {
-        return transcriptPath != null
-                && !transcriptPath.toString().strip().equalsIgnoreCase("no transcript");
+        return textType != null && textType.equalsIgnoreCase("no text");
     }
 
     private boolean needsTranscript(String textType) {
-        return !isNoText(textType);
+        return TEXT_TYPES_REQUIRING_TRANSCRIPTS.contains(textType.toLowerCase());
     }
 
     public void setKrakenService(KrakenService krakenService) {

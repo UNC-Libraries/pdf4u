@@ -50,8 +50,8 @@ public class Pdf4uCommandIT {
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
                 "pdf4u",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
-                "-tt", "handwritten-cursive"
+                "add_ocr", "-i", testFile, "-o", tmpFolder.resolve("alt21.pdf").toString(), "-t", textFile,
+                "-tt", "handwritten_cursive"
         };
 
         executeExpectSuccess(args);
@@ -63,7 +63,7 @@ public class Pdf4uCommandIT {
         String textFile = "src/test/resources/alt21.txt";
         String[] args = new String[] {
                 "pdf4u",
-                "add_ocr", "-i", testFile, "-o", tmpFolder.toString(), "-t", textFile,
+                "add_ocr", "-i", testFile, "-o", tmpFolder.resolve("alt21.pdf").toString(), "-t", textFile,
                 "-tt", "printed"
         };
 
