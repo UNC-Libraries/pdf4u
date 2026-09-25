@@ -40,6 +40,7 @@ public class MultipleTextTypesService {
      * @param options pdf4u options
      */
     public void addOcrToFile(Pdf4uOptions options) throws Exception {
+        validateTextTypes(options.getTextTypeList());
         if (options.getTextTypeList().size() == 1) {
             prepareSingleFileOptions(options);
             addOcrToSingleFile(options);
@@ -60,7 +61,7 @@ public class MultipleTextTypesService {
 
         List<Path> imagePaths = FileService.readPathList(options.getInputPath());
         List<String> textTypes = options.getTextTypeList();
-        List<Path> transcriptPaths = readTranscriptPathsIfNeeded(options, textTypes);
+        List<Path> transcriptPaths = readTranscriptPathsIfNeeded(options, textTypes, imagePaths.size());
 
         validateInputListSizes(imagePaths, textTypes, transcriptPaths);
 
@@ -100,7 +101,7 @@ public class MultipleTextTypesService {
 
         log.debug("Text type received by addOcrToSingleFile: [{}]", textType);
 
-        if (isNoText(textType) || options.getTranscriptPath() == null) {
+        if (textType.equalsIgnoreCase("no text") || options.getTranscriptPath() == null) {
             createPdfWithoutOcr(options);
         } else {
             krakenService.addOcrToFile(options);
@@ -126,10 +127,12 @@ public class MultipleTextTypesService {
             return;
         }
 
-        Path firstTranscriptPath = FileService.readPathList(options.getTranscriptPath()).getFirst();
+        if (!FileService.readPathList(options.getTranscriptPath()).isEmpty()) {
+            Path firstTranscriptPath = FileService.readPathList(options.getTranscriptPath()).getFirst();
 
-        if (firstTranscriptPath.toString().strip().equalsIgnoreCase("no transcript")) {
-            options.setTranscriptPath(null);
+            if (firstTranscriptPath.toString().strip().equalsIgnoreCase("no transcript")) {
+                options.setTranscriptPath(null);
+            }
         }
     }
 
@@ -164,9 +167,14 @@ public class MultipleTextTypesService {
      * Read list of transcript paths
      * The sentinel value "no transcript" is normalized to null immediately.
      */
-    private List<Path> readTranscriptPathsIfNeeded(Pdf4uOptions options, List<String> textTypes) throws Exception {
+    private List<Path> readTranscriptPathsIfNeeded(Pdf4uOptions options, List<String> textTypes, int imageCount)
+            throws Exception {
         if (textTypes.stream().noneMatch(this::needsTranscript)) {
             return Collections.emptyList();
+        }
+
+        if (options.getTranscriptPath() == null) {
+            return new ArrayList<>(Collections.nCopies(imageCount, null));
         }
 
         List<Path> paths = new ArrayList<>();
@@ -200,6 +208,16 @@ public class MultipleTextTypesService {
         }
     }
 
+    private void validateTextTypes(List<String> textTypes) {
+        Set<String> allowedTextTypes = new HashSet<>(
+                Arrays.asList("printed", "typed", "handwritten_print", "handwritten_cursive", "mixed", "no text"));
+        if (textTypes.stream().anyMatch(textType -> textType == null
+                || textType.isBlank() || !allowedTextTypes.contains(textType))) {
+            throw new IllegalArgumentException("Text type must be one of the supported values: " +
+                    "printed, typed, handwritten_print, handwritten_cursive, mixed, no text");
+        }
+    }
+
     /**
      * Create PDF without OCR for images without text type
      * Use graphicsmagick
@@ -213,10 +231,6 @@ public class MultipleTextTypesService {
 
         log.debug("Running graphicsmagick command to generate PDF without OCR: {}", String.join(" ", command));
         CommandUtility.executeCommand(command);
-    }
-
-    private boolean isNoText(String textType) {
-        return textType != null && textType.equalsIgnoreCase("no text");
     }
 
     private boolean needsTranscript(String textType) {
