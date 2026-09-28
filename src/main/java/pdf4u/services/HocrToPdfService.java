@@ -130,26 +130,24 @@ public class HocrToPdfService {
      * @param hocrPath path to a .hocr file
      * @param outputPath
      * @param transcriptPath path to file's transcript
-     * @return outputFile path to the output PDF with OCR
+     * @return outputPath path to the output PDF with OCR
      */
     public Path convertHocrToPdf(Path inputPath, Path hocrPath, Path outputPath, Path transcriptPath) throws Exception {
         String i = "-i";
         String inputFile = inputPath.toString();
         String o = "-o";
-        String outputFilename = FilenameUtils.getBaseName(inputFile);
-        Path outputFile = FileService.buildOutputFile(outputPath, outputFilename, ".pdf");
         String r = "-r";
         String dpi = getDpi(inputFile);
         String editedHocr = replaceHocrText(hocrPath, transcriptPath);
 
-        var command = Arrays.asList(HOCR2PDF, i, inputFile, o, outputFile.toString(), r, dpi);
+        var command = Arrays.asList(HOCR2PDF, i, inputFile, o, outputPath.toString(), r, dpi);
         log.debug("Running hocr2pdf command: {}", String.join(" ", command));
         CommandUtility.executeCommandInputFile(command, editedHocr);
 
         // delete intermediate files after PDF generated
         Files.deleteIfExists(Path.of(editedHocr));
 
-        return outputFile;
+        return outputPath;
     }
 
     /**

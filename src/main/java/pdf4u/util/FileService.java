@@ -24,11 +24,9 @@ public class FileService {
     private FileService() {}
 
     /**
-     * Build the output file path
-     * If the 'outputPath' param is a directory, create the file path with /outputPath/outputFilename.extension
-     *    e.g. inputs '/path, filename, .pdf' return '/path/filename.pdf'
-     * If the 'outputPath' param is a file, create the file path with /outputPath.extension
-     *    e.g. inputs '/path/otherfile, filename, .pdf' return '/path/otherfile.pdf'
+     * Build the output file path.
+     * If outputPath is a directory, return outputPath/outputFilename.extension.
+     * If outputPath is a file path, return that path with the requested extension
      * @param outputPath pdf4u options' output path
      * @param outputFilename base name of pdf4u options' input path
      * @param extension output file type
@@ -36,12 +34,18 @@ public class FileService {
      */
     public static Path buildOutputFile(Path outputPath, String outputFilename, String extension)
             throws Exception {
-        // if the output path is a directory
+        if (outputPath == null) {
+            throw new FileNotFoundException("Output path is null.");
+        }
+
+        String normalizedExtension = extension.startsWith(".") ? extension : "." + extension;
+
         if (Files.isDirectory(outputPath)) {
-            return outputPath.resolve(outputFilename + extension);
+            return outputPath.resolve(outputFilename + normalizedExtension);
             // if the output path is a file
         } else if (Files.exists(outputPath.getParent())) {
-            return Path.of(outputPath + extension);
+            String outputWithoutExtension = FilenameUtils.removeExtension(outputPath.toString());
+            return Path.of(outputWithoutExtension + normalizedExtension);
         } else {
             throw new FileNotFoundException(outputPath + " does not exist.");
         }
