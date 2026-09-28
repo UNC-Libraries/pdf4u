@@ -127,8 +127,9 @@ public class MultipleTextTypesService {
             return;
         }
 
-        if (!FileService.readPathList(options.getTranscriptPath()).isEmpty()) {
-            Path firstTranscriptPath = FileService.readPathList(options.getTranscriptPath()).getFirst();
+        var listTranscriptPaths = FileService.readPathList(options.getTranscriptPath());
+        if (!listTranscriptPaths.isEmpty()) {
+            Path firstTranscriptPath = listTranscriptPaths.getFirst();
 
             if (firstTranscriptPath.toString().strip().equalsIgnoreCase("no transcript")) {
                 options.setTranscriptPath(null);
